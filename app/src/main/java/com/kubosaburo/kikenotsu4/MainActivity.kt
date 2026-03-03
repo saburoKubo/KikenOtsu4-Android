@@ -12,7 +12,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
 import com.kubosaburo.kikenotsu4.ui.components.CharacterSpeechBubbleView
 import kotlin.random.Random
 import android.util.Log
@@ -27,10 +38,17 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.material.icons.filled.School
+import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.getValue
@@ -42,6 +60,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.size
 import com.kubosaburo.kikenotsu4.data.AssetRepository
 import com.kubosaburo.kikenotsu4.data.QuizLogStore
 import com.kubosaburo.kikenotsu4.data.QuizQuestion
@@ -50,6 +69,7 @@ import com.kubosaburo.kikenotsu4.ui.screens.QuizScreen
 import com.kubosaburo.kikenotsu4.ui.screens.ResultScreen
 import com.kubosaburo.kikenotsu4.ui.screens.TextDetailScreen
 import com.kubosaburo.kikenotsu4.ui.screens.TextListScreen
+import com.kubosaburo.kikenotsu4.ui.screens.FreeStudyHomeScreen
 import com.kubosaburo.kikenotsu4.ui.theme.KikenOtsu4Theme
 import kotlin.math.roundToInt
 
@@ -67,6 +87,7 @@ class MainActivity : ComponentActivity() {
 
 private enum class BottomTab { HOME, PROGRESS, SETTINGS }
 private enum class HomeMode { MENU, FREE_STUDY, CURRICULUM, MOCK }
+private enum class FreeStudyMode { HOME, TEXT_LIST }
 
 @Composable
 private fun AppRoot() {
@@ -79,6 +100,7 @@ private fun AppRoot() {
 
     var selectedTab by rememberSaveable { mutableStateOf(BottomTab.HOME) }
     var homeMode by rememberSaveable { mutableStateOf(HomeMode.MENU) }
+    var freeStudyMode by rememberSaveable { mutableStateOf(FreeStudyMode.HOME) }
 
     var selectedTextId by rememberSaveable { mutableStateOf<String?>(null) }
     var quizTextId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -89,36 +111,11 @@ private fun AppRoot() {
     // クイズ結果
     var quizResult by remember { mutableStateOf<QuizResult?>(null) }
 
-    // 復習（間違えた問題ID）
-    var wrongQuestionIds by remember { mutableStateOf<List<String>>(emptyList()) }
-    var showReviewPicker by remember { mutableStateOf(false) }
     // 進捗の再読み込みトリガー（解答ごとにインクリメント）
 
     var progressVersion by rememberSaveable { mutableIntStateOf(0) }
 
-    // ホーム（一覧）に戻ったタイミングで間違いIDを更新
-    LaunchedEffect(selectedTab, homeMode, quizTextId, quizResult, selectedTextId, questions) {
-        val isHomeRoot = (
-            selectedTab == BottomTab.HOME &&
-            homeMode == HomeMode.MENU &&
-            quizTextId == null &&
-            quizResult == null &&
-            selectedTextId == null
-        )
-        if (isHomeRoot && questions.isNotEmpty()) {
-            wrongQuestionIds = quizLogStore.getWrongIds().toList()
-        }
-    }
 
-    // 間違いIDを text_id ごとにまとめる（QuizScreen は textId で絞る仕様のため）
-    val wrongByTextId = remember(wrongQuestionIds, questions) {
-        val set = wrongQuestionIds.toSet()
-        questions
-            .asSequence()
-            .filter { set.contains(it.id) }
-            .groupBy { it.textId }
-            .mapValues { entry -> entry.value.map { q -> q.id }.distinct() }
-    }
 
     LaunchedEffect(Unit) {
         runCatching {
@@ -139,7 +136,6 @@ private fun AppRoot() {
 
     val selected: TextItem? = selectedTextId?.let { id -> texts.firstOrNull { it.id == id } }
 
-    @Suppress("ASSIGNED_VALUE_IS_NEVER_READ")
     fun startQuizWithIds(tid: String, ids: List<String>) {
         quizQuestionIds = ids
         quizTextId = tid
@@ -148,7 +144,7 @@ private fun AppRoot() {
 
     Scaffold(
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
                     Text(
                         when {
@@ -160,9 +156,30 @@ private fun AppRoot() {
                             homeMode == HomeMode.MENU -> "ホーム"
                             homeMode == HomeMode.CURRICULUM -> "カリキュラム"
                             homeMode == HomeMode.MOCK -> "模擬テスト"
+                            homeMode == HomeMode.FREE_STUDY && freeStudyMode == FreeStudyMode.TEXT_LIST -> "テキスト＋問題で学ぶ"
                             else -> "自分で学ぶ"
                         }
                     )
+                },
+                navigationIcon = {
+                    if (homeMode == HomeMode.FREE_STUDY && freeStudyMode == FreeStudyMode.TEXT_LIST) {
+                        IconButton(
+                            onClick = { freeStudyMode = FreeStudyMode.HOME },
+                            modifier = Modifier
+                                .padding(start = 12.dp)
+                                .size(36.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                    shape = CircleShape
+                                )
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                                contentDescription = "自分で学ぶへ戻る",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 },
                 actions = {
                     // no actions on this screen for now
@@ -173,14 +190,24 @@ private fun AppRoot() {
             NavigationBar {
                 NavigationBarItem(
                     selected = selectedTab == BottomTab.HOME,
-                    onClick = { selectedTab = BottomTab.HOME },
+                    onClick = {
+                        @Suppress("ASSIGNED_VALUE_IS_NEVER_READ")
+                        run {
+                            selectedTab = BottomTab.HOME
+                            homeMode = HomeMode.MENU
+                            selectedTextId = null
+                            quizTextId = null
+                            quizResult = null
+                            quizQuestionIds = emptyList()
+                        }
+                    },
                     icon = { Icon(Icons.Filled.Home, contentDescription = "ホーム") },
                     label = { Text("ホーム") }
                 )
                 NavigationBarItem(
                     selected = selectedTab == BottomTab.PROGRESS,
                     onClick = { selectedTab = BottomTab.PROGRESS },
-                    icon = { Text("📊") },
+                    icon = { Icon(Icons.Filled.BarChart, contentDescription = "進捗") },
                     label = { Text("進捗") }
                 )
                 NavigationBarItem(
@@ -193,34 +220,6 @@ private fun AppRoot() {
         }
     ) { innerPadding ->
 
-        if (showReviewPicker) {
-            AlertDialog(
-                onDismissRequest = { showReviewPicker = false },
-                title = { Text("復習するテキストを選択") },
-                text = {
-                    Column {
-                        wrongByTextId.entries
-                            .sortedBy { it.key }
-                            .forEach { (tid, ids) ->
-                                val title = texts.firstOrNull { it.id == tid }?.title ?: tid
-                                TextButton(
-                                    onClick = {
-                                        showReviewPicker = false
-                                        startQuizWithIds(tid, ids)
-                                    }
-                                ) {
-                                    Text("$title（${ids.size}問）")
-                                }
-                            }
-                    }
-                },
-                confirmButton = {
-                    TextButton(onClick = { showReviewPicker = false }) {
-                        Text("閉じる")
-                    }
-                }
-            )
-        }
 
         when {
             // Tabs that override everything
@@ -252,14 +251,20 @@ private fun AppRoot() {
                     wrongIds = r.wrongIds,
                     contentPadding = innerPadding,
                     onRetry = {
-                        val rr = quizResult!!
-                        quizResult = null
-                        startQuizWithIds(rr.textId, rr.wrongIds)
+                        @Suppress("ASSIGNED_VALUE_IS_NEVER_READ")
+                        run {
+                            val rr = quizResult!!
+                            quizResult = null
+                            startQuizWithIds(rr.textId, rr.wrongIds)
+                        }
                     },
                     onBackHome = {
-                        quizResult = null
-                        selectedTextId = null
-                        homeMode = HomeMode.MENU
+                        @Suppress("ASSIGNED_VALUE_IS_NEVER_READ")
+                        run {
+                            quizResult = null
+                            selectedTextId = null
+                            homeMode = HomeMode.MENU
+                        }
                     }
                 )
             }
@@ -283,8 +288,11 @@ private fun AppRoot() {
                     allQuestions = questions,
                     contentPadding = innerPadding,
                     onBack = {
-                        quizTextId = null
-                        quizQuestionIds = emptyList()
+                        @Suppress("ASSIGNED_VALUE_IS_NEVER_READ")
+                        run {
+                            quizTextId = null
+                            quizQuestionIds = emptyList()
+                        }
                     },
                     questionIds = quizQuestionIds.takeIf { it.isNotEmpty() },
                     onAnswerCommitted = { qid, isCorrect ->
@@ -292,14 +300,17 @@ private fun AppRoot() {
                         progressVersion += 1
                     },
                     onFinish = { total, correct, wrongIds ->
-                        quizResult = QuizResult(
-                            textId = tid,
-                            total = total,
-                            correct = correct,
-                            wrongIds = wrongIds
-                        )
-                        quizTextId = null
-                        quizQuestionIds = emptyList()
+                        @Suppress("ASSIGNED_VALUE_IS_NEVER_READ")
+                        run {
+                            quizResult = QuizResult(
+                                textId = tid,
+                                total = total,
+                                correct = correct,
+                                wrongIds = wrongIds
+                            )
+                            quizTextId = null
+                            quizQuestionIds = emptyList()
+                        }
                     }
                 )
             }
@@ -308,21 +319,64 @@ private fun AppRoot() {
                 TextDetailScreen(
                     textItem = selected,
                     contentPadding = innerPadding,
-                    onBack = { selectedTextId = null },
+                    onBack = {
+                        @Suppress("ASSIGNED_VALUE_IS_NEVER_READ")
+                        run { selectedTextId = null }
+                    },
                     onStartQuiz = {
-                        quizResult = null
-                        quizQuestionIds = emptyList()
-                        quizTextId = it
+                        @Suppress("ASSIGNED_VALUE_IS_NEVER_READ")
+                        run {
+                            quizResult = null
+                            quizQuestionIds = emptyList()
+                            quizTextId = it
+                        }
                     }
                 )
             }
 
             homeMode == HomeMode.FREE_STUDY -> {
-                TextListScreen(
-                    items = texts,
-                    contentPadding = innerPadding,
-                    onOpen = { selectedTextId = it }
-                )
+                when (freeStudyMode) {
+                    FreeStudyMode.HOME -> {
+                        FreeStudyHomeScreen(
+                            contentPadding = innerPadding,
+                            onTextQuiz = {
+                                // まずは既存のテキスト一覧へ繋ぐ（暫定）
+                                freeStudyMode = FreeStudyMode.TEXT_LIST
+                            },
+                            onBookmarks = {
+                                // TODO: Bookmark画面を作ったら遷移
+                                homeMode = HomeMode.MENU
+                            },
+                            onTodayReview = {
+                                // TODO: Review実装後に遷移
+                                homeMode = HomeMode.MENU
+                            },
+                            onSearch = {
+                                // TODO: Search画面を作ったら遷移
+                                homeMode = HomeMode.MENU
+                            },
+                            characterImage1 = R.drawable.nicosme_normal,
+                            characterImage2 = R.drawable.nicosme_openmouth
+                        )
+                    }
+
+                    FreeStudyMode.TEXT_LIST -> {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(innerPadding)
+                        ) {
+                            TextListScreen(
+                                items = texts,
+                                contentPadding = PaddingValues(0.dp),
+                                onOpen = {
+                                    @Suppress("ASSIGNED_VALUE_IS_NEVER_READ")
+                                    run { selectedTextId = it }
+                                }
+                            )
+                        }
+                    }
+                }
             }
 
             homeMode == HomeMode.CURRICULUM -> {
@@ -345,7 +399,10 @@ private fun AppRoot() {
                 HomeMenuScreen(
                     contentPadding = innerPadding,
                     onCurriculum = { homeMode = HomeMode.CURRICULUM },
-                    onFreeStudy = { homeMode = HomeMode.FREE_STUDY },
+                    onFreeStudy = {
+                        homeMode = HomeMode.FREE_STUDY
+                        freeStudyMode = FreeStudyMode.HOME
+                    },
                     onMock = { homeMode = HomeMode.MOCK }
                 )
             }
@@ -363,7 +420,7 @@ private data class QuizResult(
 @Composable
 private fun ProgressScreen(
     quizLogStore: QuizLogStore,
-    contentPadding: androidx.compose.foundation.layout.PaddingValues,
+    contentPadding: PaddingValues,
     progressVersion: Int,
     onBack: () -> Unit
 ) {
@@ -428,7 +485,7 @@ private fun StatRow(label: String, value: String) {
 
 @Composable
 private fun HomeMenuScreen(
-    contentPadding: androidx.compose.foundation.layout.PaddingValues,
+    contentPadding: PaddingValues,
     onCurriculum: () -> Unit,
     onFreeStudy: () -> Unit,
     onMock: () -> Unit
@@ -448,14 +505,15 @@ private fun HomeMenuScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(contentPadding)
-            .padding(16.dp),
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         // キャラクター + 吹き出し（共通コンポーネント）
         CharacterSpeechBubbleView(
             characterImage1 = R.drawable.nicosme_normal, // 後でキャラ画像に差し替え
             characterImage2 = R.drawable.nicosme_run, // 2コマ目（仮）。アニメ不要なら null に。
-            durationMillis = 1400L,
+            durationMillis = 1600L,
             text = phrase,
             modifier = Modifier.fillMaxWidth(),
             characterSize = 120.dp
@@ -463,15 +521,29 @@ private fun HomeMenuScreen(
 
         Spacer(Modifier.height(6.dp))
 
-        Button(onClick = onCurriculum, modifier = Modifier.fillMaxWidth()) {
-            Text("カリキュラムで学ぶ")
-        }
-        Button(onClick = onFreeStudy, modifier = Modifier.fillMaxWidth()) {
-            Text("自分で学ぶ")
-        }
-        Button(onClick = onMock, modifier = Modifier.fillMaxWidth()) {
-            Text("模擬テストで学ぶ")
-        }
+        HomeMenuCard(
+            icon = Icons.Filled.School,
+            title = "カリキュラムで学ぶ",
+            subtitle = "カリキュラムで学べば合格までアテンドするよ",
+            backgroundColor = Color(0xFFFF8A1E),
+            onClick = onCurriculum
+        )
+
+        HomeMenuCard(
+            icon = Icons.AutoMirrored.Filled.MenuBook,
+            title = "自分で学ぶ",
+            subtitle = "やりたいことを、 自分で選べる",
+            backgroundColor = Color(0xFF22C55E),
+            onClick = onFreeStudy
+        )
+
+        HomeMenuCard(
+            icon = Icons.AutoMirrored.Filled.Assignment,
+            title = "模擬テストで学ぶ",
+            subtitle = "模擬テストで自分の実力を試してみよう",
+            backgroundColor = Color(0xFF1E88FF),
+            onClick = onMock
+        )
 
         Spacer(Modifier.height(4.dp))
         Text(
@@ -481,10 +553,71 @@ private fun HomeMenuScreen(
     }
 }
 
+
+@Composable
+private fun HomeMenuCard(
+    icon: ImageVector,
+    title: String,
+    subtitle: String,
+    backgroundColor: Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val shape = RoundedCornerShape(22.dp)
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(118.dp)
+            .clickable { onClick() },
+        shape = shape,
+        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 20.dp, vertical = 16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier.size(32.dp)
+            )
+            Spacer(Modifier.width(14.dp))
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    title,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Color.White
+                )
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White
+                )
+            }
+
+            Box(
+                modifier = Modifier.width(28.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(">", color = Color.White, style = MaterialTheme.typography.titleLarge)
+            }
+        }
+    }
+}
+
 @Composable
 private fun PlaceholderModeScreen(
     title: String,
-    contentPadding: androidx.compose.foundation.layout.PaddingValues,
+    contentPadding: PaddingValues,
     onBack: () -> Unit
 ) {
     Column(
@@ -503,7 +636,7 @@ private fun PlaceholderModeScreen(
 
 @Composable
 private fun SettingsScreen(
-    contentPadding: androidx.compose.foundation.layout.PaddingValues
+    contentPadding: PaddingValues
 ) {
     Column(
         modifier = Modifier
