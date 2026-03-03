@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.kubosaburo.kikenotsu4.data.QuizLogStore
 import kotlin.math.roundToInt
 
+@Suppress("unused")
 @Composable
 fun ProgressScreen(
     quizLogStore: QuizLogStore,
@@ -67,7 +68,10 @@ fun ProgressScreen(
                 StatRow(label = "正答率", value = "${accuracy}%")
 
                 LinearProgressIndicator(
-                    progress = if (stats.totalAnswered == 0) 0f else stats.totalCorrect.toFloat() / stats.totalAnswered.toFloat(),
+                    progress = {
+                        if (stats.totalAnswered == 0) 0f
+                        else stats.totalCorrect.toFloat() / stats.totalAnswered.toFloat()
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(8.dp)

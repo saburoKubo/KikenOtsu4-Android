@@ -47,10 +47,10 @@ import kotlinx.coroutines.delay
 @Composable
 fun CharacterSpeechBubbleView(
     @DrawableRes characterImage1: Int,
-    @DrawableRes characterImage2: Int? = null,
-    durationMillis: Long = 1000L,
     text: String,
     modifier: Modifier = Modifier,
+    @DrawableRes characterImage2: Int? = null,
+    durationMillis: Long = 1000L,
     characterSize: Dp = 120.dp,
     bubbleCornerRadius: Dp = 18.dp,
     bubblePadding: Dp = 14.dp,
