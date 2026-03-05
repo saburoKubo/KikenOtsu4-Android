@@ -1,5 +1,7 @@
 package com.kubosaburo.kikenotsu4.ui.screens
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,23 +15,38 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.clip
+import com.kubosaburo.kikenotsu4.R
 import com.kubosaburo.kikenotsu4.data.TextItem
+import com.kubosaburo.kikenotsu4.ui.components.CharacterSpeechBubbleView
 import com.kubosaburo.kikenotsu4.ui.parseBoldMarkdown
 
 @Composable
@@ -45,6 +62,27 @@ fun TextListScreen(
         contentPadding = PaddingValues(12.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
+
+        // Header: character + speech bubble (like iOS)
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 6.dp, bottom = 6.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CharacterSpeechBubbleView(
+                    characterImage1 = R.drawable.nicosme_man,
+                    characterImage2 = R.drawable.nicosme_man_smile,
+                    durationMillis = 2000L,
+                    text = parseBoldMarkdown("学びたいテキストを選んでね"),
+                    modifier = Modifier.wrapContentWidth(),
+                    characterSize = 120.dp,
+                    bubbleBorderColor = Color(0xFFFFD0D6)
+                )
+            }
+        }
+
         items(items) { item ->
             Card(
                 modifier = Modifier
@@ -108,51 +146,196 @@ fun TextListScreen(
 fun TextDetailScreen(
     textItem: TextItem,
     contentPadding: PaddingValues,
-    onBack: () -> Unit,
     onStartQuiz: (String) -> Unit
 ) {
+    var zoomImageResId by remember { mutableStateOf<Int?>(null) }
+    if (zoomImageResId != null) {
+        AlertDialog(
+            onDismissRequest = {
+                @Suppress("ASSIGNED_VALUE_IS_NEVER_READ")
+                zoomImageResId = null
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        @Suppress("ASSIGNED_VALUE_IS_NEVER_READ")
+                        zoomImageResId = null
+                    }
+                ) {
+                    Text("閉じる")
+                }
+            },
+            text = {
+                Image(
+                    painter = painterResource(id = zoomImageResId!!),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp)),
+                    contentScale = ContentScale.Fit
+                )
+            }
+        )
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(contentPadding),
         contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            TextButton(onClick = onBack) { Text("← 一覧へ") }
-        }
-        item {
-            Button(onClick = { onStartQuiz(textItem.id) }) { Text("関連クイズを解く") }
+            TextTitleCard(title = textItem.title)
         }
 
-        items(textItem.content) { line ->
-            Text(parseBoldMarkdown(line), style = MaterialTheme.typography.bodyLarge)
-        }
+        items(textItem.content.indices.toList()) { idx ->
+            val line = textItem.content[idx]
+            val (c1, c2) = characterFor(idx)
 
-        if (textItem.table.isNotEmpty()) {
-            item {
-                Text("補足（表）", style = MaterialTheme.typography.titleSmall)
+            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                CharacterSpeechBubbleView(
+                    characterImage1 = c1,
+                    characterImage2 = c2,
+                    durationMillis = 1400L,
+                    text = parseBoldMarkdown(line),
+                    modifier = Modifier.wrapContentWidth(),
+                    characterSize = 72.dp,
+                )
             }
-            items(textItem.table) { row ->
-                Column(modifier = Modifier.fillMaxWidth()) {
-                    if (row.category.isNotBlank()) {
-                        Text(row.category, style = MaterialTheme.typography.titleSmall)
+        }
+
+        textItem.image?.takeIf { it.isNotBlank() }?.let { imageName ->
+            item {
+                val resId = remember(imageName) {
+                    val fieldName = imageName.trim().lowercase().substringBeforeLast('.')
+                    runCatching {
+                        R.drawable::class.java.getField(fieldName).getInt(null)
+                    }.getOrDefault(0)
+                }
+
+                if (resId != 0) {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(id = resId),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { zoomImageResId = resId },
+                            contentScale = ContentScale.FillWidth
+                        )
                     }
-                    if (row.name.isNotBlank()) {
+                    Spacer(Modifier.height(8.dp))
+                } else {
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                    ) {
                         Text(
-                            row.name,
+                            text = "画像がありません",
+                            modifier = Modifier.padding(14.dp),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    if (row.description.isNotBlank()) {
-                        Text(parseBoldMarkdown(row.description))
-                    }
-                    if (row.item.isNotBlank()) {
-                        Text(parseBoldMarkdown(row.item))
+                }
+            }
+        }
+
+        if (textItem.table.isNotEmpty()) {
+            items(textItem.table) { row ->
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(14.dp),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        if (row.category.isNotBlank()) {
+                            // Header label with soft green background (like iOS screenshot)
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(Color(0x3322C55E))
+                                    .padding(vertical = 10.dp, horizontal = 12.dp)
+                            ) {
+                                Text(
+                                    text = row.category,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
+                        }
+                        if (row.name.isNotBlank()) {
+                            Text(
+                                row.name,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        if (row.description.isNotBlank()) {
+                            Text(parseBoldMarkdown(row.description))
+                        }
+                        if (row.item.isNotBlank()) {
+                            Text(parseBoldMarkdown(row.item))
+                        }
                     }
                 }
             }
         }
+
+        item {
+            Button(
+                onClick = { onStartQuiz(textItem.id) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, bottom = 20.dp),
+                contentPadding = PaddingValues(vertical = 14.dp)
+            ) {
+                Text("このテキストの問題へ ▶︎")
+            }
+        }
+    }
+}
+
+
+@Composable
+private fun TextTitleCard(title: String) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0x3322C55E)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Text(
+            text = title,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 14.dp, horizontal = 14.dp),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+private fun characterFor(index: Int): Pair<Int, Int?> {
+    return when (index % 3) {
+        0 -> R.drawable.nico_professor_normal to R.drawable.nico_professor_left
+        1 -> R.drawable.nico_idle to R.drawable.nico_idle_wink
+        else -> R.drawable.nico_flagdown to R.drawable.nico_flagup
     }
 }

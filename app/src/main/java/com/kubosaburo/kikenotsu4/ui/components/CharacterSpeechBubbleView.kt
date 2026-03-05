@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,7 +48,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun CharacterSpeechBubbleView(
     @DrawableRes characterImage1: Int,
-    text: String,
+    text: AnnotatedString,
     modifier: Modifier = Modifier,
     @DrawableRes characterImage2: Int? = null,
     durationMillis: Long = 1000L,
@@ -55,8 +56,9 @@ fun CharacterSpeechBubbleView(
     bubbleCornerRadius: Dp = 18.dp,
     bubblePadding: Dp = 14.dp,
     bubbleColor: Color = MaterialTheme.colorScheme.surface,
-    bubbleBorderColor: Color = MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
-    bubbleBorderWidth: Dp = 2.dp,
+    // Neutral gray border
+    bubbleBorderColor: Color = Color(0xFFB0B0B0).copy(alpha = 0.65f),
+    bubbleBorderWidth: Dp = 1.dp,
     tailWidth: Dp = 14.dp,
     tailHeight: Dp = 12.dp,
     tailOffsetFromTop: Dp = 28.dp,
@@ -95,6 +97,48 @@ fun CharacterSpeechBubbleView(
             )
         }
     }
+}
+
+@Composable
+fun CharacterSpeechBubbleView(
+    @DrawableRes characterImage1: Int,
+    text: String,
+    modifier: Modifier = Modifier,
+    @DrawableRes characterImage2: Int? = null,
+    durationMillis: Long = 1000L,
+    characterSize: Dp = 120.dp,
+    bubbleCornerRadius: Dp = 18.dp,
+    bubblePadding: Dp = 14.dp,
+    bubbleColor: Color = MaterialTheme.colorScheme.surface,
+    // Neutral gray border
+    bubbleBorderColor: Color = Color(0xFFB0B0B0).copy(alpha = 0.65f),
+    bubbleBorderWidth: Dp = 1.dp,
+    tailWidth: Dp = 14.dp,
+    tailHeight: Dp = 12.dp,
+    tailOffsetFromTop: Dp = 28.dp,
+    textStyle: TextStyle = MaterialTheme.typography.titleMedium,
+    textColor: Color = MaterialTheme.colorScheme.onSurface,
+    textWeight: FontWeight = FontWeight.Bold,
+) {
+    CharacterSpeechBubbleView(
+        characterImage1 = characterImage1,
+        text = AnnotatedString(text),
+        modifier = modifier,
+        characterImage2 = characterImage2,
+        durationMillis = durationMillis,
+        characterSize = characterSize,
+        bubbleCornerRadius = bubbleCornerRadius,
+        bubblePadding = bubblePadding,
+        bubbleColor = bubbleColor,
+        bubbleBorderColor = bubbleBorderColor,
+        bubbleBorderWidth = bubbleBorderWidth,
+        tailWidth = tailWidth,
+        tailHeight = tailHeight,
+        tailOffsetFromTop = tailOffsetFromTop,
+        textStyle = textStyle,
+        textColor = textColor,
+        textWeight = textWeight,
+    )
 }
 
 @Composable

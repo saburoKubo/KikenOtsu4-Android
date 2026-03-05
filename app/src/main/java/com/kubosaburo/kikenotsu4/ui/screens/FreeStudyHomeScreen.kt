@@ -19,8 +19,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.automirrored.filled.Undo
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -35,7 +36,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.kubosaburo.kikenotsu4.R
 import com.kubosaburo.kikenotsu4.ui.components.CharacterSpeechBubbleView
-import androidx.compose.foundation.layout.wrapContentWidth
 
 /**
  * iOS の FreeStudyHomeView 相当。
@@ -74,11 +74,11 @@ fun FreeStudyHomeScreen(
             CharacterSpeechBubbleView(
                 characterImage1 = characterImage1,
                 characterImage2 = characterImage2,
-                durationMillis = 1600L,
+                durationMillis = 2600L,
                 text = phrase,
-                modifier = Modifier.wrapContentWidth(),
+                modifier = Modifier,
                 characterSize = 120.dp,
-                bubbleBorderColor = Color(0xFFFF4DA6) // pink-ish
+                bubbleBorderColor = Color(0xFFF6A6C7)
             )
         }
 
@@ -87,7 +87,7 @@ fun FreeStudyHomeScreen(
             title = "テキスト＋問題で学ぶ",
             subtitle = "読んで → すぐ確認",
             icon = Icons.AutoMirrored.Filled.MenuBook,
-            backgroundColor = Color(0xFFFF8A1E),
+            iconBackgroundColor = Color(0xFFF59E0B),
             onClick = onTextQuiz
         )
 
@@ -96,7 +96,7 @@ fun FreeStudyHomeScreen(
             title = "ブックマークで学ぶ",
             subtitle = "保存したテキスト・問題",
             icon = Icons.Filled.Bookmark,
-            backgroundColor = Color(0xFF1E88FF),
+            iconBackgroundColor = Color(0xFF3B82F6),
             onClick = onBookmarks
         )
 
@@ -105,7 +105,7 @@ fun FreeStudyHomeScreen(
             title = "本日の復習",
             subtitle = "忘れかけをサクッと確認",
             icon = Icons.AutoMirrored.Filled.Undo,
-            backgroundColor = Color(0xFF8B5CF6),
+            iconBackgroundColor = Color(0xFFA855F7),
             onClick = onTodayReview
         )
 
@@ -114,7 +114,7 @@ fun FreeStudyHomeScreen(
             title = "検索して学ぶ",
             subtitle = "キーワード検索",
             icon = Icons.Filled.Search,
-            backgroundColor = Color(0xFFFF4DA6),
+            iconBackgroundColor = Color(0xFFEF4444),
             onClick = onSearch
         )
 
@@ -127,11 +127,12 @@ private fun FreeStudyCategoryCard(
     title: String,
     subtitle: String,
     icon: ImageVector,
-    backgroundColor: Color,
+    iconBackgroundColor: Color,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val shape = RoundedCornerShape(22.dp)
+    val cardBg = Color(0xFFF2F3F7)
 
     Card(
         modifier = modifier
@@ -139,47 +140,69 @@ private fun FreeStudyCategoryCard(
             .height(110.dp)
             .clickable { onClick() },
         shape = shape,
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        colors = CardDefaults.cardColors(containerColor = cardBg),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 20.dp, vertical = 12.dp),
+                .padding(horizontal = 18.dp, vertical = 16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            androidx.compose.material3.Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier.size(32.dp)
-            )
-            Spacer(Modifier.width(14.dp))
+            // Left colored icon tile
+            Box(
+                modifier = Modifier
+                    .size(54.dp)
+                    .clickable { onClick() }
+                    .padding(0.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = iconBackgroundColor),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(54.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        androidx.compose.material3.Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.width(16.dp))
 
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    title,
+                    text = title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color.White
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF111111)
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    subtitle,
+                    text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White
+                    color = Color(0xFF6B7280)
                 )
             }
 
-            Box(
-                modifier = Modifier.width(28.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(">", color = Color.White, style = MaterialTheme.typography.titleLarge)
-            }
+            androidx.compose.material3.Icon(
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = Color(0xFF9CA3AF),
+                modifier = Modifier.size(28.dp)
+            )
         }
     }
 }
