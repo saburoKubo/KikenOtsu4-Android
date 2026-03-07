@@ -13,19 +13,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -59,11 +60,10 @@ fun TextListScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(contentPadding),
-        contentPadding = PaddingValues(12.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-
-        // Header: character + speech bubble (like iOS)
+        // Header: character + speech bubble
         item {
             Box(
                 modifier = Modifier
@@ -72,34 +72,37 @@ fun TextListScreen(
                 contentAlignment = Alignment.Center
             ) {
                 CharacterSpeechBubbleView(
-                    characterImage1 = R.drawable.nicosme_man,
-                    characterImage2 = R.drawable.nicosme_man_smile,
-                    durationMillis = 2000L,
+                    characterImage1 = R.drawable.nicosme_normal,
+                    characterImage2 = R.drawable.nicosme_openmouth,
+                    durationMillis = 1800L,
                     text = parseBoldMarkdown("学びたいテキストを選んでね"),
                     modifier = Modifier.wrapContentWidth(),
                     characterSize = 120.dp,
-                    bubbleBorderColor = Color(0xFFFFD0D6)
                 )
             }
         }
 
-        items(items) { item ->
+        items(items) { t ->
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { onOpen(item.id) },
-                shape = MaterialTheme.shapes.large,
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                    .clickable { onOpen(t.id) },
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(60.dp)
-                        .padding(horizontal = 14.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(horizontal = 14.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Box(
-                        modifier = Modifier.size(26.dp),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .padding(horizontal = 10.dp, vertical = 8.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
@@ -108,28 +111,13 @@ fun TextListScreen(
                         )
                     }
 
-                    Spacer(Modifier.width(12.dp))
-
-                    Column(
+                    Text(
+                        text = t.title,
                         modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = item.title,
-                            style = MaterialTheme.typography.titleMedium,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        item.categoryMain?.takeIf { it.isNotBlank() }?.let { cat ->
-                            Text(
-                                text = cat,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
 
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -139,6 +127,8 @@ fun TextListScreen(
                 }
             }
         }
+
+        item { Spacer(Modifier.height(24.dp)) }
     }
 }
 
@@ -146,7 +136,9 @@ fun TextListScreen(
 fun TextDetailScreen(
     textItem: TextItem,
     contentPadding: PaddingValues,
-    onStartQuiz: (String) -> Unit
+    onStartQuiz: (String) -> Unit,
+    isBookmarked: Boolean = false,
+    onToggleBookmark: () -> Unit = {}
 ) {
     var zoomImageResId by remember { mutableStateOf<Int?>(null) }
     if (zoomImageResId != null) {
@@ -186,7 +178,23 @@ fun TextDetailScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            TextTitleCard(title = textItem.title)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    TextTitleCard(title = textItem.title)
+                }
+
+                IconButton(onClick = onToggleBookmark) {
+                    Icon(
+                        imageVector = if (isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+                        contentDescription = "ブックマーク",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
         }
 
         items(textItem.content.indices.toList()) { idx ->

@@ -16,10 +16,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -91,8 +89,8 @@ fun SectionCelebrationScreen(
             onCompleteSectionIfNeeded?.invoke()
         }
 
-        // 3秒程度で止める
-        delay(3_000)
+        // もう少し長めに見せる
+        delay(4_500)
         showConfetti = false
     }
 
@@ -105,10 +103,9 @@ fun SectionCelebrationScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp, Alignment.CenterVertically),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(Modifier.height(18.dp))
 
             CelebrationCharacter(size = 220.dp)
 
@@ -134,7 +131,6 @@ fun SectionCelebrationScreen(
                 )
             }
 
-            Spacer(Modifier.height(10.dp))
         }
 
         if (showConfetti) {
@@ -164,7 +160,7 @@ private fun CelebrationCharacter(size: Dp) {
         contentAlignment = Alignment.Center
     ) {
         Image(
-            painter = painterResource(id = R.drawable.nicos_final1),
+            painter = painterResource(id = R.drawable.nicos_wasshoi1),
             contentDescription = null,
             modifier = Modifier
                 .fillMaxSize()
@@ -172,7 +168,7 @@ private fun CelebrationCharacter(size: Dp) {
             contentScale = ContentScale.Fit
         )
         Image(
-            painter = painterResource(id = R.drawable.nicos_final2),
+            painter = painterResource(id = R.drawable.nicos_wasshoi2),
             contentDescription = null,
             modifier = Modifier
                 .fillMaxSize()
@@ -186,7 +182,7 @@ private fun CelebrationCharacter(size: Dp) {
 @Composable
 private fun ConfettiOverlay(
     modifier: Modifier = Modifier,
-    intensity: Float = 0.8f,
+    intensity: Float = 1.2f,
 ) {
     // NOTE: 本格的な物理はやらず、見た目優先の軽量実装
     val colors = remember {
@@ -199,14 +195,15 @@ private fun ConfettiOverlay(
         )
     }
 
-    val particleCount = (40 * intensity).coerceIn(12f, 80f).toInt()
+    // 粒数を増やして密度アップ
+    val particleCount = (90 * intensity).coerceIn(30f, 180f).toInt()
     val particles = remember {
         List(particleCount) {
             ConfettiParticle(
                 x = Random.nextFloat(),
                 y = -Random.nextFloat(),
                 speed = 0.25f + Random.nextFloat() * 0.75f,
-                size = 6f + Random.nextFloat() * 8f,
+                size = 8f + Random.nextFloat() * 10f,
                 color = colors.random()
             )
         }
@@ -235,7 +232,7 @@ private fun ConfettiOverlay(
             drawRect(
                 color = p.color,
                 topLeft = androidx.compose.ui.geometry.Offset(xx, yy),
-                size = androidx.compose.ui.geometry.Size(p.size, p.size * 0.6f)
+                size = androidx.compose.ui.geometry.Size(p.size, p.size * 0.7f)
             )
         }
     }
