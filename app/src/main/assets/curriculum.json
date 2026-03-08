@@ -1,0 +1,2105 @@
+{
+    "curriculums": [
+        {
+            "id": "chapter_01",
+            "title": "消防法で規定する危険物①",
+            "description": "消防法で定められている『危険物』とは何か、その基本的な考え方を学びましょう。",
+            "sections": [
+                {
+                    "id": "section_01_1",
+                    "title": "消防法で規定する危険物①",
+                    "type": "text",
+                    "refId": "text_001",
+                    "nextId": "section_01_2"
+                },
+                {
+                    "id": "section_01_2",
+                    "title": "消防法で規定する危険物①（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g001",
+                    "nextId": "section_02_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_02",
+            "title": "消防法で規定する危険物②",
+            "description": "危険物には固体や液体がありますが、気体は含まれません。その理由を確認してみましょう。",
+            "sections": [
+                {
+                    "id": "section_02_1",
+                    "title": "消防法で規定する危険物②",
+                    "type": "text",
+                    "refId": "text_002",
+                    "nextId": "section_02_2"
+                },
+                {
+                    "id": "section_02_2",
+                    "title": "消防法で規定する危険物②（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g002",
+                    "nextId": "section_03_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_03",
+            "title": "危険物の分類（第1類〜第6類）",
+            "description": "消防法で定められた危険物の分類と、それぞれの性質を理解しましょう。",
+            "sections": [
+                {
+                    "id": "section_03_1",
+                    "title": "危険物の分類（第1類〜第6類）",
+                    "type": "text",
+                    "refId": "text_003",
+                    "nextId": "section_03_2"
+                },
+                {
+                    "id": "section_03_2",
+                    "title": "危険物の分類（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g003",
+                    "nextId": "section_04_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_04",
+            "title": "第4類危険物の性質と分類",
+            "description": "乙4試験の中心である第4類危険物について、性質や分類を整理します。",
+            "sections": [
+                {
+                    "id": "section_04_1",
+                    "title": "第4類危険物の性質と分類",
+                    "type": "text",
+                    "refId": "text_004",
+                    "nextId": "section_04_2"
+                },
+                {
+                    "id": "section_04_2",
+                    "title": "第4類危険物（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g004",
+                    "nextId": "section_05_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_05",
+            "title": "指定数量の考え方",
+            "description": "危険物規制の基準となる指定数量について学びます。",
+            "sections": [
+                {
+                    "id": "section_05_1",
+                    "title": "指定数量とは何か",
+                    "type": "text",
+                    "refId": "text_005",
+                    "nextId": "section_05_2"
+                },
+                {
+                    "id": "section_05_2",
+                    "title": "指定数量（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g005",
+                    "nextId": "section_06_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_06",
+            "title": "指定数量の倍数と混在計算",
+            "description": "指定数量の倍数計算や、混在時の判断を身につけます。",
+            "sections": [
+                {
+                    "id": "section_06_1",
+                    "title": "指定数量の倍数と混在計算",
+                    "type": "text",
+                    "refId": "text_006",
+                    "nextId": "section_06_2"
+                },
+                {
+                    "id": "section_06_2",
+                    "title": "指定数量の倍数（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g006",
+                    "nextId": "section_07_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_07",
+            "title": "第4類危険物の指定数量一覧",
+            "description": "第4類危険物の指定数量を比較し、暗記ポイントを整理します。",
+            "sections": [
+                {
+                    "id": "section_07_1",
+                    "title": "第4類危険物の指定数量一覧",
+                    "type": "text",
+                    "refId": "text_007",
+                    "nextId": "section_07_2"
+                },
+                {
+                    "id": "section_07_2",
+                    "title": "指定数量一覧（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g007",
+                    "nextId": "section_08_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_08",
+            "title": "混在計算と少量危険物",
+            "description": "混在計算と、指定数量未満の場合の規制について理解します。",
+            "sections": [
+                {
+                    "id": "section_08_1",
+                    "title": "混在計算と少量危険物",
+                    "type": "text",
+                    "refId": "text_008",
+                    "nextId": "section_08_2"
+                },
+                {
+                    "id": "section_08_2",
+                    "title": "混在計算（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g008",
+                    "nextId": "section_09_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_09",
+            "title": "危険物取扱者の立会いと資格区分",
+            "description": "危険物取扱者の立会いが必要な作業と資格区分を整理します。",
+            "sections": [
+                {
+                    "id": "section_09_1",
+                    "title": "危険物取扱者の立会いと資格区分",
+                    "type": "text",
+                    "refId": "text_009",
+                    "nextId": "section_09_2"
+                },
+                {
+                    "id": "section_09_2",
+                    "title": "立会いと資格（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g009",
+                    "nextId": "section_10_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_10",
+            "title": "危険物取扱者の資格区分",
+            "description": "甲種・乙種・丙種の取扱範囲と立会いの可否を整理します。",
+            "sections": [
+                {
+                    "id": "section_10_1",
+                    "title": "危険物取扱者の資格区分",
+                    "type": "text",
+                    "refId": "text_010",
+                    "nextId": "section_10_2"
+                },
+                {
+                    "id": "section_10_2",
+                    "title": "資格区分（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g010",
+                    "nextId": "section_11_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_11",
+            "title": "無資格者の取扱いと例外",
+            "description": "指定数量未満・軽微な作業の例外ルールを確認します。",
+            "sections": [
+                {
+                    "id": "section_11_1",
+                    "title": "無資格者の取扱いと例外",
+                    "type": "text",
+                    "refId": "text_011",
+                    "nextId": "section_11_2"
+                },
+                {
+                    "id": "section_11_2",
+                    "title": "無資格作業（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g011",
+                    "nextId": "section_12_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_12",
+            "title": "免状の交付・書換え・再交付",
+            "description": "免状に関する手続きと申請先を整理します。",
+            "sections": [
+                {
+                    "id": "section_12_1",
+                    "title": "免状の交付・書換え・再交付",
+                    "type": "text",
+                    "refId": "text_012",
+                    "nextId": "section_12_2"
+                },
+                {
+                    "id": "section_12_2",
+                    "title": "免状手続き（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g012",
+                    "nextId": "section_13_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_13",
+            "title": "保安講習",
+            "description": "保安講習の受講対象・頻度・期限を学びます。",
+            "sections": [
+                {
+                    "id": "section_13_1",
+                    "title": "保安講習の基本",
+                    "type": "text",
+                    "refId": "text_013",
+                    "nextId": "section_13_2"
+                },
+                {
+                    "id": "section_13_2",
+                    "title": "保安講習（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g013",
+                    "nextId": "section_14_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_14",
+            "title": "危険物保安監督者",
+            "description": "保安監督者の役割・選任基準・届出を整理します。",
+            "sections": [
+                {
+                    "id": "section_14_1",
+                    "title": "危険物保安監督者",
+                    "type": "text",
+                    "refId": "text_014",
+                    "nextId": "section_14_2"
+                },
+                {
+                    "id": "section_14_2",
+                    "title": "保安監督者（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g014",
+                    "nextId": "section_15_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_15",
+            "title": "危険物保安統括管理者",
+            "description": "大規模事業所に必要な統括管理者制度を理解します。",
+            "sections": [
+                {
+                    "id": "section_15_1",
+                    "title": "危険物保安統括管理者",
+                    "type": "text",
+                    "refId": "text_015",
+                    "nextId": "section_15_2"
+                },
+                {
+                    "id": "section_15_2",
+                    "title": "統括管理者（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g015",
+                    "nextId": "section_16_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_16",
+            "title": "危険物施設保安員",
+            "description": "保安員の役割と保安監督者との違いを整理します。",
+            "sections": [
+                {
+                    "id": "section_16_1",
+                    "title": "危険物施設保安員",
+                    "type": "text",
+                    "refId": "text_016",
+                    "nextId": "section_16_2"
+                },
+                {
+                    "id": "section_16_2",
+                    "title": "保安員（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g016",
+                    "nextId": "section_17_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_17",
+            "title": "予防規定",
+            "description": "予防規定の作成義務・内容・認可について学びます。",
+            "sections": [
+                {
+                    "id": "section_17_1",
+                    "title": "予防規定",
+                    "type": "text",
+                    "refId": "text_017",
+                    "nextId": "section_17_2"
+                },
+                {
+                    "id": "section_17_2",
+                    "title": "予防規定（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g017",
+                    "nextId": "section_18_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_18",
+            "title": "危険物施設の区分",
+            "description": "製造所・貯蔵所・取扱所の基本区分を整理します。",
+            "sections": [
+                {
+                    "id": "section_18_1",
+                    "title": "危険物施設の区分",
+                    "type": "text",
+                    "refId": "text_018",
+                    "nextId": "section_18_2"
+                },
+                {
+                    "id": "section_18_2",
+                    "title": "施設区分（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g018",
+                    "nextId": "section_19_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_19",
+            "title": "貯蔵所の種類",
+            "description": "屋内・屋外・地下・移動タンク貯蔵所を整理します。",
+            "sections": [
+                {
+                    "id": "section_19_1",
+                    "title": "貯蔵所の種類",
+                    "type": "text",
+                    "refId": "text_019",
+                    "nextId": "section_19_2"
+                },
+                {
+                    "id": "section_19_2",
+                    "title": "貯蔵所（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g019",
+                    "nextId": "section_20_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_20",
+            "title": "取扱所の種類",
+            "description": "給油・販売・移送・一般取扱所の違いを理解します。",
+            "sections": [
+                {
+                    "id": "section_20_1",
+                    "title": "取扱所の種類",
+                    "type": "text",
+                    "refId": "text_020",
+                    "nextId": "section_20_2"
+                },
+                {
+                    "id": "section_20_2",
+                    "title": "取扱所（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g020",
+                    "nextId": "section_21_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_21",
+            "title": "設置許可の権者",
+            "description": "危険物施設の種類と区域による許可権者の違いを学びます。",
+            "sections": [
+                {
+                    "id": "section_21_1",
+                    "title": "設置許可の権者",
+                    "type": "text",
+                    "refId": "text_021",
+                    "nextId": "section_21_2"
+                },
+                {
+                    "id": "section_21_2",
+                    "title": "設置許可（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g021",
+                    "nextId": "section_22_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_22",
+            "title": "変更届と提出期限",
+            "description": "変更内容による届出期限の違いを整理します。",
+            "sections": [
+                {
+                    "id": "section_22_1",
+                    "title": "変更届と提出期限",
+                    "type": "text",
+                    "refId": "text_022",
+                    "nextId": "section_22_2"
+                },
+                {
+                    "id": "section_22_2",
+                    "title": "変更届（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g022",
+                    "nextId": "section_23_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_23",
+            "title": "完成検査・仮使用承認",
+            "description": "完成検査・完成前検査・仮使用承認の違いを理解します。",
+            "sections": [
+                {
+                    "id": "section_23_1",
+                    "title": "完成検査と仮使用承認",
+                    "type": "text",
+                    "refId": "text_023",
+                    "nextId": "section_23_2"
+                },
+                {
+                    "id": "section_23_2",
+                    "title": "検査制度（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g023",
+                    "nextId": "section_24_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_24",
+            "title": "仮貯蔵・仮取扱い",
+            "description": "仮貯蔵・仮取扱いの考え方と承認制度を学びます。",
+            "sections": [
+                {
+                    "id": "section_24_1",
+                    "title": "仮貯蔵・仮取扱い",
+                    "type": "text",
+                    "refId": "text_024",
+                    "nextId": "section_24_2"
+                },
+                {
+                    "id": "section_24_2",
+                    "title": "仮貯蔵・仮取扱い（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g024",
+                    "nextId": "section_25_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_25",
+            "title": "定期点検",
+            "description": "定期点検の目的・実施者・対象施設を整理します。",
+            "sections": [
+                {
+                    "id": "section_25_1",
+                    "title": "定期点検",
+                    "type": "text",
+                    "refId": "text_025",
+                    "nextId": "section_25_2"
+                },
+                {
+                    "id": "section_25_2",
+                    "title": "定期点検（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g025",
+                    "nextId": "section_26_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_26",
+            "title": "保安検査",
+            "description": "定期保安検査と臨時保安検査の違いを理解します。",
+            "sections": [
+                {
+                    "id": "section_26_1",
+                    "title": "保安検査",
+                    "type": "text",
+                    "refId": "text_026",
+                    "nextId": "section_26_2"
+                },
+                {
+                    "id": "section_26_2",
+                    "title": "保安検査（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g026",
+                    "nextId": "section_27_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_27",
+            "title": "保安距離",
+            "description": "保安距離の意味と対象施設を整理します。",
+            "sections": [
+                {
+                    "id": "section_27_1",
+                    "title": "保安距離",
+                    "type": "text",
+                    "refId": "text_027",
+                    "nextId": "section_27_2"
+                },
+                {
+                    "id": "section_27_2",
+                    "title": "保安距離（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g027",
+                    "nextId": "section_28_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_28",
+            "title": "保有空地",
+            "description": "保有空地と保安距離の違いを明確にします。",
+            "sections": [
+                {
+                    "id": "section_28_1",
+                    "title": "保有空地",
+                    "type": "text",
+                    "refId": "text_028",
+                    "nextId": "section_28_2"
+                },
+                {
+                    "id": "section_28_2",
+                    "title": "保有空地（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g028",
+                    "nextId": "section_29_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_29",
+            "title": "製造所の構造基準",
+            "description": "製造所に求められる最も厳しい構造基準を学びます。",
+            "sections": [
+                {
+                    "id": "section_29_1",
+                    "title": "製造所の構造基準",
+                    "type": "text",
+                    "refId": "text_029",
+                    "nextId": "section_29_2"
+                },
+                {
+                    "id": "section_29_2",
+                    "title": "製造所の構造（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g029",
+                    "nextId": "section_31_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_31",
+            "title": "製造所の配管",
+            "description": "製造所に設ける配管の技術基準、水圧試験、腐食防止を学ぶ。",
+            "sections": [
+                {
+                    "id": "section_31_1",
+                    "title": "製造所の配管",
+                    "type": "text",
+                    "refId": "text_031",
+                    "nextId": "section_31_2"
+                },
+                {
+                    "id": "section_31_2",
+                    "title": "製造所の配管（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g031",
+                    "nextId": "section_32_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_32",
+            "title": "屋外貯蔵所",
+            "description": "屋外貯蔵所の設置場所、区画、架台、貯蔵可能な危険物を整理する。",
+            "sections": [
+                {
+                    "id": "section_32_1",
+                    "title": "屋外貯蔵所",
+                    "type": "text",
+                    "refId": "text_032",
+                    "nextId": "section_32_2"
+                },
+                {
+                    "id": "section_32_2",
+                    "title": "屋外貯蔵所（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g032",
+                    "nextId": "section_33_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_33",
+            "title": "屋内貯蔵所",
+            "description": "屋内貯蔵所の構造、避雷設備、建物形態ごとの制限を理解する。",
+            "sections": [
+                {
+                    "id": "section_33_1",
+                    "title": "屋内貯蔵所",
+                    "type": "text",
+                    "refId": "text_033",
+                    "nextId": "section_33_2"
+                },
+                {
+                    "id": "section_33_2",
+                    "title": "屋内貯蔵所（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g033",
+                    "nextId": "section_34_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_34",
+            "title": "屋外タンク貯蔵所",
+            "description": "敷地内距離、特殊物質（二硫化炭素）、避雷設備を整理する。",
+            "sections": [
+                {
+                    "id": "section_34_1",
+                    "title": "屋外タンク貯蔵所",
+                    "type": "text",
+                    "refId": "text_034",
+                    "nextId": "section_34_2"
+                },
+                {
+                    "id": "section_34_2",
+                    "title": "屋外タンク貯蔵所（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g034",
+                    "nextId": "section_35_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_35",
+            "title": "屋内タンク貯蔵所",
+            "description": "屋内タンク貯蔵所の平屋建制限、容量制限を重点的に確認する。",
+            "sections": [
+                {
+                    "id": "section_35_1",
+                    "title": "屋内タンク貯蔵所",
+                    "type": "text",
+                    "refId": "text_035",
+                    "nextId": "section_35_2"
+                },
+                {
+                    "id": "section_35_2",
+                    "title": "屋内タンク貯蔵所（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g035",
+                    "nextId": "section_36_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_36",
+            "title": "地下タンク貯蔵所",
+            "description": "地下タンクの相互間隔、消火設備、構造基準を整理する。",
+            "sections": [
+                {
+                    "id": "section_36_1",
+                    "title": "地下タンク貯蔵所",
+                    "type": "text",
+                    "refId": "text_036",
+                    "nextId": "section_36_2"
+                },
+                {
+                    "id": "section_36_2",
+                    "title": "地下タンク貯蔵所（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g036",
+                    "nextId": "section_37_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_37",
+            "title": "簡易タンク貯蔵所",
+            "description": "簡易タンクの容量、基数、設置条件を整理する。",
+            "sections": [
+                {
+                    "id": "section_37_1",
+                    "title": "簡易タンク貯蔵所",
+                    "type": "text",
+                    "refId": "text_037",
+                    "nextId": "section_37_2"
+                },
+                {
+                    "id": "section_37_2",
+                    "title": "簡易タンク貯蔵所（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g037",
+                    "nextId": "section_38_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_38",
+            "title": "移動タンク貯蔵所（構造・駐車）",
+            "description": "移動タンク貯蔵所の構造と駐車場所の制限を学ぶ。",
+            "sections": [
+                {
+                    "id": "section_38_1",
+                    "title": "移動タンク貯蔵所（構造・駐車）",
+                    "type": "text",
+                    "refId": "text_038",
+                    "nextId": "section_38_2"
+                },
+                {
+                    "id": "section_38_2",
+                    "title": "移動タンク貯蔵所（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g038",
+                    "nextId": "section_39_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_39",
+            "title": "移動タンク貯蔵所（取扱い）",
+            "description": "危険物取扱者の立会いが必要な作業を整理する。",
+            "sections": [
+                {
+                    "id": "section_39_1",
+                    "title": "移動タンク貯蔵所の取扱い",
+                    "type": "text",
+                    "refId": "text_039",
+                    "nextId": "section_39_2"
+                },
+                {
+                    "id": "section_39_2",
+                    "title": "移動タンク貯蔵所（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g039",
+                    "nextId": "section_40_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_40",
+            "title": "移動タンク貯蔵所（移送）",
+            "description": "移送と運搬の違い、免状携帯義務、経路届出を理解する。",
+            "sections": [
+                {
+                    "id": "section_40_1",
+                    "title": "移動タンク貯蔵所の移送",
+                    "type": "text",
+                    "refId": "text_040",
+                    "nextId": "section_40_2"
+                },
+                {
+                    "id": "section_40_2",
+                    "title": "移動タンク貯蔵所（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g040",
+                    "nextId": "section_41_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_41",
+            "title": "給油取扱所（基本）",
+            "description": "給油取扱所の定義、取扱い、設置できる用途を学ぶ。",
+            "sections": [
+                {
+                    "id": "section_41_1",
+                    "title": "給油取扱所の基本",
+                    "type": "text",
+                    "refId": "text_041",
+                    "nextId": "section_41_2"
+                },
+                {
+                    "id": "section_41_2",
+                    "title": "給油取扱所（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g041",
+                    "nextId": "section_42_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_42",
+            "title": "セルフ型給油取扱所",
+            "description": "セルフ給油の監視体制、禁止行為、設備基準を整理する。",
+            "sections": [
+                {
+                    "id": "section_42_1",
+                    "title": "セルフ型給油取扱所",
+                    "type": "text",
+                    "refId": "text_042",
+                    "nextId": "section_42_2"
+                },
+                {
+                    "id": "section_42_2",
+                    "title": "セルフ型給油取扱所（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g042",
+                    "nextId": "section_43_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_43",
+            "title": "販売取扱所",
+            "description": "販売取扱所の区分、販売できる危険物、容器基準を学ぶ。",
+            "sections": [
+                {
+                    "id": "section_43_1",
+                    "title": "販売取扱所",
+                    "type": "text",
+                    "refId": "text_043",
+                    "nextId": "section_43_2"
+                },
+                {
+                    "id": "section_43_2",
+                    "title": "販売取扱所（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g043",
+                    "nextId": "section_44_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_44",
+            "title": "移送取扱所",
+            "description": "移送取扱所の定義、配管、点検、特定移送取扱所を整理する。",
+            "sections": [
+                {
+                    "id": "section_44_1",
+                    "title": "移送取扱所",
+                    "type": "text",
+                    "refId": "text_044",
+                    "nextId": "section_44_2"
+                },
+                {
+                    "id": "section_44_2",
+                    "title": "移送取扱所（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g044",
+                    "nextId": "section_45_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_45",
+            "title": "危険物の運搬",
+            "description": "運搬と移送の違い、免状の要否、混載制限を理解する。",
+            "sections": [
+                {
+                    "id": "section_45_1",
+                    "title": "危険物の運搬",
+                    "type": "text",
+                    "refId": "text_045",
+                    "nextId": "section_45_2"
+                },
+                {
+                    "id": "section_45_2",
+                    "title": "危険物の運搬（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g045",
+                    "nextId": "section_46_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_46",
+            "title": "消火設備（所要単位）",
+            "description": "所要単位の考え方と算定方法を整理する。",
+            "sections": [
+                {
+                    "id": "section_46_1",
+                    "title": "消火設備（所要単位）",
+                    "type": "text",
+                    "refId": "text_046",
+                    "nextId": "section_46_2"
+                },
+                {
+                    "id": "section_46_2",
+                    "title": "消火設備（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g046",
+                    "nextId": "section_47_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_47",
+            "title": "消火設備（能力単位）",
+            "description": "能力単位と消火器の型式の対応を理解する。",
+            "sections": [
+                {
+                    "id": "section_47_1",
+                    "title": "消火設備（能力単位）",
+                    "type": "text",
+                    "refId": "text_047",
+                    "nextId": "section_47_2"
+                },
+                {
+                    "id": "section_47_2",
+                    "title": "消火設備（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g047",
+                    "nextId": "section_48_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_48",
+            "title": "警報設備",
+            "description": "警報設備の設置義務と対象施設を整理する。",
+            "sections": [
+                {
+                    "id": "section_48_1",
+                    "title": "警報設備",
+                    "type": "text",
+                    "refId": "text_048",
+                    "nextId": "section_48_2"
+                },
+                {
+                    "id": "section_48_2",
+                    "title": "警報設備（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g048",
+                    "nextId": "section_49_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_49",
+            "title": "措置命令・立入検査",
+            "description": "措置命令、使用停止命令、立入検査の違いを整理する。",
+            "sections": [
+                {
+                    "id": "section_49_1",
+                    "title": "措置命令・立入検査",
+                    "type": "text",
+                    "refId": "text_049",
+                    "nextId": "section_49_2"
+                },
+                {
+                    "id": "section_49_2",
+                    "title": "措置命令・立入検査（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g049",
+                    "nextId": "section_50_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_50",
+            "title": "命令・行政処分",
+            "description": "基準適合命令、解任命令、応急措置命令を学ぶ。",
+            "sections": [
+                {
+                    "id": "section_50_1",
+                    "title": "命令・行政処分",
+                    "type": "text",
+                    "refId": "text_050",
+                    "nextId": "section_50_2"
+                },
+                {
+                    "id": "section_50_2",
+                    "title": "命令・行政処分（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g050",
+                    "nextId": "section_51_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_51",
+            "title": "許可の取消し・使用停止命令",
+            "description": "許可の取消しや使用停止命令が行われる要件を整理する。",
+            "sections": [
+                {
+                    "id": "section_51_1",
+                    "title": "許可の取消し・使用停止命令",
+                    "type": "text",
+                    "refId": "text_051",
+                    "nextId": "section_51_2"
+                },
+                {
+                    "id": "section_51_2",
+                    "title": "許可の取消し・使用停止命令（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g051",
+                    "nextId": "section_52_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_52",
+            "title": "燃焼の三要素と消火方法",
+            "description": "燃焼の三要素と、消火の基本原理を理解する。",
+            "sections": [
+                {
+                    "id": "section_52_1",
+                    "title": "燃焼の三要素と消火方法",
+                    "type": "text",
+                    "refId": "text_052",
+                    "nextId": "section_52_2"
+                },
+                {
+                    "id": "section_52_2",
+                    "title": "燃焼の三要素（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g052",
+                    "nextId": "section_53_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_53",
+            "title": "気体の燃焼",
+            "description": "気体の燃焼特性と、予混合燃焼・拡散燃焼を整理する。",
+            "sections": [
+                {
+                    "id": "section_53_1",
+                    "title": "気体の燃焼",
+                    "type": "text",
+                    "refId": "text_053",
+                    "nextId": "section_53_2"
+                },
+                {
+                    "id": "section_53_2",
+                    "title": "気体の燃焼（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g053",
+                    "nextId": "section_54_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_54",
+            "title": "液体の燃焼と引火点",
+            "description": "蒸発燃焼の仕組みと、引火点の意味を理解する。",
+            "sections": [
+                {
+                    "id": "section_54_1",
+                    "title": "液体の燃焼と引火点",
+                    "type": "text",
+                    "refId": "text_054",
+                    "nextId": "section_54_2"
+                },
+                {
+                    "id": "section_54_2",
+                    "title": "液体の燃焼（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g054",
+                    "nextId": "section_55_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_55",
+            "title": "固体の燃焼",
+            "description": "固体の燃焼形態（表面・分解・蒸発・自己燃焼）を整理する。",
+            "sections": [
+                {
+                    "id": "section_55_1",
+                    "title": "固体の燃焼",
+                    "type": "text",
+                    "refId": "text_055",
+                    "nextId": "section_55_2"
+                },
+                {
+                    "id": "section_55_2",
+                    "title": "固体の燃焼（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g055",
+                    "nextId": "section_56_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_56",
+            "title": "燃えやすさの条件",
+            "description": "表面積、酸素濃度、温度など燃えやすさの条件を学ぶ。",
+            "sections": [
+                {
+                    "id": "section_56_1",
+                    "title": "燃えやすさの条件",
+                    "type": "text",
+                    "refId": "text_056",
+                    "nextId": "section_56_2"
+                },
+                {
+                    "id": "section_56_2",
+                    "title": "燃えやすさ（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g056",
+                    "nextId": "section_57_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_57",
+            "title": "引火点と発火点",
+            "description": "引火点と発火点（自己発火温度）の違いを整理する。",
+            "sections": [
+                {
+                    "id": "section_57_1",
+                    "title": "引火点と発火点",
+                    "type": "text",
+                    "refId": "text_057",
+                    "nextId": "section_57_2"
+                },
+                {
+                    "id": "section_57_2",
+                    "title": "引火点・発火点（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g057",
+                    "nextId": "section_58_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_58",
+            "title": "燃焼範囲（爆発範囲）",
+            "description": "燃焼範囲（可燃限界）の考え方と計算を学ぶ。",
+            "sections": [
+                {
+                    "id": "section_58_1",
+                    "title": "燃焼範囲（爆発範囲）",
+                    "type": "text",
+                    "refId": "text_058",
+                    "nextId": "section_58_2"
+                },
+                {
+                    "id": "section_58_2",
+                    "title": "燃焼範囲（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g058",
+                    "nextId": "section_59_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_59",
+            "title": "自然発火",
+            "description": "自然発火の仕組みと、代表的な物質を整理する。",
+            "sections": [
+                {
+                    "id": "section_59_1",
+                    "title": "自然発火",
+                    "type": "text",
+                    "refId": "text_059",
+                    "nextId": "section_59_2"
+                },
+                {
+                    "id": "section_59_2",
+                    "title": "自然発火（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g059",
+                    "nextId": "section_60_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_60",
+            "title": "粉じん爆発",
+            "description": "粉じん爆発の条件と危険性を理解する。",
+            "sections": [
+                {
+                    "id": "section_60_1",
+                    "title": "粉じん爆発",
+                    "type": "text",
+                    "refId": "text_060",
+                    "nextId": "section_60_2"
+                },
+                {
+                    "id": "section_60_2",
+                    "title": "粉じん爆発（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g060",
+                    "nextId": "section_61_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_61",
+            "title": "燃焼と消火の原理",
+            "description": "燃焼の三要素と消火の基本原理を理解する。",
+            "sections": [
+                {
+                    "id": "section_61_1",
+                    "title": "燃焼と消火の原理",
+                    "type": "text",
+                    "refId": "text_061",
+                    "nextId": "section_61_2"
+                },
+                {
+                    "id": "section_61_2",
+                    "title": "燃焼と消火（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g061",
+                    "nextId": "section_62_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_62",
+            "title": "消火剤の種類と作用",
+            "description": "水・泡・粉末・CO₂消火剤の特徴を整理する。",
+            "sections": [
+                {
+                    "id": "section_62_1",
+                    "title": "消火剤の種類と作用",
+                    "type": "text",
+                    "refId": "text_062",
+                    "nextId": "section_62_2"
+                },
+                {
+                    "id": "section_62_2",
+                    "title": "消火剤（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g062",
+                    "nextId": "section_63_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_63",
+            "title": "静電気と危険性",
+            "description": "静電気の発生原因と防止策を理解する。",
+            "sections": [
+                {
+                    "id": "section_63_1",
+                    "title": "静電気と危険性",
+                    "type": "text",
+                    "refId": "text_063",
+                    "nextId": "section_63_2"
+                },
+                {
+                    "id": "section_63_2",
+                    "title": "静電気（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g063",
+                    "nextId": "section_64_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_64",
+            "title": "物質の三態と性質",
+            "description": "固体・液体・気体の性質と状態変化を学ぶ。",
+            "sections": [
+                {
+                    "id": "section_64_1",
+                    "title": "物質の三態と性質",
+                    "type": "text",
+                    "refId": "text_064",
+                    "nextId": "section_64_2"
+                },
+                {
+                    "id": "section_64_2",
+                    "title": "物質の三態（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g064",
+                    "nextId": "section_65_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_65",
+            "title": "沸点と蒸気圧",
+            "description": "沸点・飽和蒸気圧と危険性の関係を理解する。",
+            "sections": [
+                {
+                    "id": "section_65_1",
+                    "title": "沸点と蒸気圧",
+                    "type": "text",
+                    "refId": "text_065",
+                    "nextId": "section_65_2"
+                },
+                {
+                    "id": "section_65_2",
+                    "title": "沸点と蒸気圧（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g065",
+                    "nextId": "section_66_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_66",
+            "title": "比重と蒸気比重",
+            "description": "比重・蒸気比重と滞留性の関係を整理する。",
+            "sections": [
+                {
+                    "id": "section_66_1",
+                    "title": "比重と蒸気比重",
+                    "type": "text",
+                    "refId": "text_066",
+                    "nextId": "section_66_2"
+                },
+                {
+                    "id": "section_66_2",
+                    "title": "比重（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g066",
+                    "nextId": "section_67_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_67",
+            "title": "ボイルの法則（基礎）",
+            "description": "圧力と体積の関係を法則として理解する。",
+            "sections": [
+                {
+                    "id": "section_67_1",
+                    "title": "ボイルの法則（基礎）",
+                    "type": "text",
+                    "refId": "text_067",
+                    "nextId": "section_67_2"
+                },
+                {
+                    "id": "section_67_2",
+                    "title": "ボイルの法則（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g067",
+                    "nextId": "section_68_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_68",
+            "title": "ボイルの法則（計算）",
+            "description": "ボイルの法則を用いた計算問題に慣れる。",
+            "sections": [
+                {
+                    "id": "section_68_1",
+                    "title": "ボイルの法則（計算）",
+                    "type": "text",
+                    "refId": "text_068",
+                    "nextId": "section_68_2"
+                },
+                {
+                    "id": "section_68_2",
+                    "title": "ボイルの法則（計算問題）",
+                    "type": "quiz",
+                    "refId": "g068",
+                    "nextId": "section_70_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_70",
+            "title": "熱量・比熱・熱容量",
+            "description": "熱量計算の基本と概念を整理する。",
+            "sections": [
+                {
+                    "id": "section_70_1",
+                    "title": "熱量・比熱・熱容量",
+                    "type": "text",
+                    "refId": "text_070",
+                    "nextId": "section_70_2"
+                },
+                {
+                    "id": "section_70_2",
+                    "title": "熱量計算（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g070",
+                    "nextId": "section_71_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_71",
+            "title": "熱量計算",
+            "description": "比熱・単位換算を含む計算問題を解く。",
+            "sections": [
+                {
+                    "id": "section_71_1",
+                    "title": "熱量計算",
+                    "type": "text",
+                    "refId": "text_071",
+                    "nextId": "section_71_2"
+                },
+                {
+                    "id": "section_71_2",
+                    "title": "熱量計算（演習）",
+                    "type": "quiz",
+                    "refId": "g071",
+                    "nextId": "section_72_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_72",
+            "title": "熱の移動",
+            "description": "伝導・対流・放射の違いを理解する。",
+            "sections": [
+                {
+                    "id": "section_72_1",
+                    "title": "熱の移動",
+                    "type": "text",
+                    "refId": "text_072",
+                    "nextId": "section_72_2"
+                },
+                {
+                    "id": "section_72_2",
+                    "title": "熱の移動（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g072",
+                    "nextId": "section_73_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_73",
+            "title": "熱膨張",
+            "description": "熱膨張と密閉容器の危険性を理解する。",
+            "sections": [
+                {
+                    "id": "section_73_1",
+                    "title": "熱膨張",
+                    "type": "text",
+                    "refId": "text_073",
+                    "nextId": "section_73_2"
+                },
+                {
+                    "id": "section_73_2",
+                    "title": "熱膨張（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g073",
+                    "nextId": "section_74_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_74",
+            "title": "物理変化と化学変化",
+            "description": "物理変化と化学変化の違いを整理する。",
+            "sections": [
+                {
+                    "id": "section_74_1",
+                    "title": "物理変化と化学変化",
+                    "type": "text",
+                    "refId": "text_074",
+                    "nextId": "section_74_2"
+                },
+                {
+                    "id": "section_74_2",
+                    "title": "物理・化学変化（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g074",
+                    "nextId": "section_75_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_75",
+            "title": "純物質と混合物",
+            "description": "純物質と混合物の分類を理解する。",
+            "sections": [
+                {
+                    "id": "section_75_1",
+                    "title": "純物質と混合物",
+                    "type": "text",
+                    "refId": "text_075",
+                    "nextId": "section_75_2"
+                },
+                {
+                    "id": "section_75_2",
+                    "title": "純物質と混合物（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g075",
+                    "nextId": "section_76_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_76",
+            "title": "単体と化合物",
+            "description": "単体と化合物の違いを理解する。",
+            "sections": [
+                {
+                    "id": "section_76_1",
+                    "title": "単体と化合物",
+                    "type": "text",
+                    "refId": "text_076",
+                    "nextId": "section_76_2"
+                },
+                {
+                    "id": "section_76_2",
+                    "title": "単体と化合物（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g076",
+                    "nextId": "section_77_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_77",
+            "title": "同素体と異性体",
+            "description": "同素体と異性体の違いを整理する。",
+            "sections": [
+                {
+                    "id": "section_77_1",
+                    "title": "同素体と異性体",
+                    "type": "text",
+                    "refId": "text_077",
+                    "nextId": "section_77_2"
+                },
+                {
+                    "id": "section_77_2",
+                    "title": "同素体・異性体（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g077",
+                    "nextId": "section_78_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_78",
+            "title": "原子の構造",
+            "description": "原子番号・質量数・同位体を理解する。",
+            "sections": [
+                {
+                    "id": "section_78_1",
+                    "title": "原子の構造",
+                    "type": "text",
+                    "refId": "text_078",
+                    "nextId": "section_78_2"
+                },
+                {
+                    "id": "section_78_2",
+                    "title": "原子の構造（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g078",
+                    "nextId": "section_79_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_79",
+            "title": "分子と分子量",
+            "description": "分子・分子量・式量の考え方を理解する。",
+            "sections": [
+                {
+                    "id": "section_79_1",
+                    "title": "分子と分子量",
+                    "type": "text",
+                    "refId": "text_079",
+                    "nextId": "section_79_2"
+                },
+                {
+                    "id": "section_79_2",
+                    "title": "分子量（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g079",
+                    "nextId": "section_80_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_80",
+            "title": "モルと物質量",
+            "description": "モル・アボガドロ数・気体の体積を理解する。",
+            "sections": [
+                {
+                    "id": "section_80_1",
+                    "title": "モルと物質量",
+                    "type": "text",
+                    "refId": "text_080",
+                    "nextId": "section_80_2"
+                },
+                {
+                    "id": "section_80_2",
+                    "title": "モル計算（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g080",
+                    "nextId": "section_81_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_81",
+            "title": "化学式と化学反応式",
+            "description": "化学式と化学反応式の基本を理解する。",
+            "sections": [
+                {
+                    "id": "section_81_1",
+                    "title": "化学式と化学反応式",
+                    "type": "text",
+                    "refId": "text_081",
+                    "nextId": "section_81_2"
+                },
+                {
+                    "id": "section_81_2",
+                    "title": "化学式（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g081",
+                    "nextId": "section_82_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_82",
+            "title": "アボガドロの法則",
+            "description": "気体の体積と分子数の関係を理解する。",
+            "sections": [
+                {
+                    "id": "section_82_1",
+                    "title": "アボガドロの法則",
+                    "type": "text",
+                    "refId": "text_082",
+                    "nextId": "section_82_2"
+                },
+                {
+                    "id": "section_82_2",
+                    "title": "アボガドロの法則（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g082",
+                    "nextId": "section_85_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_85",
+            "title": "酸・塩基・中和",
+            "description": "酸・塩基の性質と中和反応を理解する。",
+            "sections": [
+                {
+                    "id": "section_85_1",
+                    "title": "酸・塩基・中和",
+                    "type": "text",
+                    "refId": "text_085",
+                    "nextId": "section_85_2"
+                },
+                {
+                    "id": "section_85_2",
+                    "title": "酸・塩基（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g085",
+                    "nextId": "section_86_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_86",
+            "title": "中和反応と反応式",
+            "description": "中和反応の仕組みと反応式を整理する。",
+            "sections": [
+                {
+                    "id": "section_86_1",
+                    "title": "中和反応",
+                    "type": "text",
+                    "refId": "text_086",
+                    "nextId": "section_86_2"
+                },
+                {
+                    "id": "section_86_2",
+                    "title": "中和反応（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g086",
+                    "nextId": "section_87_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_87",
+            "title": "pHと水溶液",
+            "description": "pHと水素イオン濃度の関係を理解する。",
+            "sections": [
+                {
+                    "id": "section_87_1",
+                    "title": "pHと水溶液",
+                    "type": "text",
+                    "refId": "text_087",
+                    "nextId": "section_87_2"
+                },
+                {
+                    "id": "section_87_2",
+                    "title": "pH（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g087",
+                    "nextId": "section_88_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_88",
+            "title": "酸化と還元",
+            "description": "酸化還元反応の基本を理解する。",
+            "sections": [
+                {
+                    "id": "section_88_1",
+                    "title": "酸化と還元",
+                    "type": "text",
+                    "refId": "text_088",
+                    "nextId": "section_88_2"
+                },
+                {
+                    "id": "section_88_2",
+                    "title": "酸化還元（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g088",
+                    "nextId": "section_89_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_89",
+            "title": "酸化剤と還元剤",
+            "description": "酸化剤・還元剤の役割を整理する。",
+            "sections": [
+                {
+                    "id": "section_89_1",
+                    "title": "酸化剤と還元剤",
+                    "type": "text",
+                    "refId": "text_089",
+                    "nextId": "section_89_2"
+                },
+                {
+                    "id": "section_89_2",
+                    "title": "酸化剤と還元剤（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g089",
+                    "nextId": "section_90_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_90",
+            "title": "混合危険",
+            "description": "混合危険の考え方と防止策を理解する。",
+            "sections": [
+                {
+                    "id": "section_90_1",
+                    "title": "混合危険",
+                    "type": "text",
+                    "refId": "text_090",
+                    "nextId": "section_90_2"
+                },
+                {
+                    "id": "section_90_2",
+                    "title": "混合危険（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g090",
+                    "nextId": "section_91_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_91",
+            "title": "金属の腐食",
+            "description": "金属腐食の仕組みと防止法を理解する。",
+            "sections": [
+                {
+                    "id": "section_91_1",
+                    "title": "金属の腐食",
+                    "type": "text",
+                    "refId": "text_091",
+                    "nextId": "section_91_2"
+                },
+                {
+                    "id": "section_91_2",
+                    "title": "金属の腐食（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g091",
+                    "nextId": "section_92_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_92",
+            "title": "有機化合物",
+            "description": "有機化合物の特徴と燃焼を理解する。",
+            "sections": [
+                {
+                    "id": "section_92_1",
+                    "title": "有機化合物",
+                    "type": "text",
+                    "refId": "text_092",
+                    "nextId": "section_92_2"
+                },
+                {
+                    "id": "section_92_2",
+                    "title": "有機化合物（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g092",
+                    "nextId": "section_93_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_93",
+            "title": "酸素",
+            "description": "酸素の性質と燃焼との関係を理解する。",
+            "sections": [
+                {
+                    "id": "section_93_1",
+                    "title": "酸素",
+                    "type": "text",
+                    "refId": "text_093",
+                    "nextId": "section_93_2"
+                },
+                {
+                    "id": "section_93_2",
+                    "title": "酸素（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g093",
+                    "nextId": "section_94_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_94",
+            "title": "二酸化炭素",
+            "description": "二酸化炭素の性質と消火作用を理解する。",
+            "sections": [
+                {
+                    "id": "section_94_1",
+                    "title": "二酸化炭素",
+                    "type": "text",
+                    "refId": "text_094",
+                    "nextId": "section_94_2"
+                },
+                {
+                    "id": "section_94_2",
+                    "title": "二酸化炭素（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g094",
+                    "nextId": "section_95_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_95",
+            "title": "一酸化炭素",
+            "description": "一酸化炭素の発生と危険性を理解する。",
+            "sections": [
+                {
+                    "id": "section_95_1",
+                    "title": "一酸化炭素",
+                    "type": "text",
+                    "refId": "text_095",
+                    "nextId": "section_95_2"
+                },
+                {
+                    "id": "section_95_2",
+                    "title": "一酸化炭素（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g095",
+                    "nextId": "section_96_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_96",
+            "title": "水素",
+            "description": "水素の性質と爆発危険を理解する。",
+            "sections": [
+                {
+                    "id": "section_96_1",
+                    "title": "水素",
+                    "type": "text",
+                    "refId": "text_096",
+                    "nextId": "section_96_2"
+                },
+                {
+                    "id": "section_96_2",
+                    "title": "水素（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g096",
+                    "nextId": "section_97_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_97",
+            "title": "窒素",
+            "description": "窒素の性質と防火利用を理解する。",
+            "sections": [
+                {
+                    "id": "section_97_1",
+                    "title": "窒素",
+                    "type": "text",
+                    "refId": "text_097",
+                    "nextId": "section_97_2"
+                },
+                {
+                    "id": "section_97_2",
+                    "title": "窒素（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g097",
+                    "nextId": "section_98_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_98",
+            "title": "特殊引火物",
+            "description": "特殊引火物の危険性と取扱いを理解する。",
+            "sections": [
+                {
+                    "id": "section_98_1",
+                    "title": "特殊引火物",
+                    "type": "text",
+                    "refId": "text_098",
+                    "nextId": "section_98_2"
+                },
+                {
+                    "id": "section_98_2",
+                    "title": "特殊引火物（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g098",
+                    "nextId": "section_99_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_99",
+            "title": "第一石油類",
+            "description": "第一石油類の性質と消火方法を理解する。",
+            "sections": [
+                {
+                    "id": "section_99_1",
+                    "title": "第一石油類",
+                    "type": "text",
+                    "refId": "text_099",
+                    "nextId": "section_99_2"
+                },
+                {
+                    "id": "section_99_2",
+                    "title": "第一石油類（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g099",
+                    "nextId": "section_100_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_100",
+            "title": "アルコール類",
+            "description": "アルコール類の性質と消火方法を理解する。",
+            "sections": [
+                {
+                    "id": "section_100_1",
+                    "title": "アルコール類",
+                    "type": "text",
+                    "refId": "text_100",
+                    "nextId": "section_100_2"
+                },
+                {
+                    "id": "section_100_2",
+                    "title": "アルコール類（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g100",
+                    "nextId": "section_101_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_101",
+            "title": "第2石油類",
+            "description": "第2石油類の性質と指定数量を理解する。",
+            "sections": [
+                {
+                    "id": "section_101_1",
+                    "title": "第2石油類",
+                    "type": "text",
+                    "refId": "text_101",
+                    "nextId": "section_101_2"
+                },
+                {
+                    "id": "section_101_2",
+                    "title": "第2石油類（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g101",
+                    "nextId": "section_102_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_102",
+            "title": "第3石油類",
+            "description": "第3石油類の性質と消火方法を理解する。",
+            "sections": [
+                {
+                    "id": "section_102_1",
+                    "title": "第3石油類",
+                    "type": "text",
+                    "refId": "text_102",
+                    "nextId": "section_102_2"
+                },
+                {
+                    "id": "section_102_2",
+                    "title": "第3石油類（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g102",
+                    "nextId": "section_103_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_103",
+            "title": "第4石油類",
+            "description": "第4石油類の性質と注意点を理解する。",
+            "sections": [
+                {
+                    "id": "section_103_1",
+                    "title": "第4石油類",
+                    "type": "text",
+                    "refId": "text_103",
+                    "nextId": "section_103_2"
+                },
+                {
+                    "id": "section_103_2",
+                    "title": "第4石油類（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g103",
+                    "nextId": "section_104_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_104",
+            "title": "動植物油類",
+            "description": "動植物油類の性質と自然発火を理解する。",
+            "sections": [
+                {
+                    "id": "section_104_1",
+                    "title": "動植物油類",
+                    "type": "text",
+                    "refId": "text_104",
+                    "nextId": "section_104_2"
+                },
+                {
+                    "id": "section_104_2",
+                    "title": "動植物油類（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g104",
+                    "nextId": null
+                }
+            ]
+        }
+
+    ]
+}

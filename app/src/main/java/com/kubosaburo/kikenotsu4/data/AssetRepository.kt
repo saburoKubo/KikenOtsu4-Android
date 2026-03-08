@@ -37,4 +37,20 @@ object AssetRepository {
 
         return wrapper.questions
     }
+
+    fun loadCurriculum(context: Context): CurriculumRoot {
+        val text = context.assets.open("curriculum.json")
+            .bufferedReader(Charsets.UTF_8)
+            .use { it.readText() }
+
+        val root = json.decodeFromString(CurriculumRoot.serializer(), text)
+
+        // ざっくり確認ログ
+        Log.d(
+            "AssetRepository",
+            "curriculum chapters=${root.chapters.size} firstId=${root.chapters.firstOrNull()?.id ?: "-"}"
+        )
+
+        return root
+    }
 }

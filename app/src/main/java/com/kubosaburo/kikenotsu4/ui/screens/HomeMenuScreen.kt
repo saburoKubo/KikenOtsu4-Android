@@ -50,12 +50,12 @@ fun HomeMenuScreen(
             .padding(horizontal = 18.dp, vertical = 14.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
-        // Header
-        Text(
-            text = "ホーム",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
+//        // Header
+//        Text(
+//            text = "ホーム",
+//            style = MaterialTheme.typography.titleMedium,
+//            fontWeight = FontWeight.Bold
+//        )
 
         // Character bubble
         CharacterSpeechBubbleView(

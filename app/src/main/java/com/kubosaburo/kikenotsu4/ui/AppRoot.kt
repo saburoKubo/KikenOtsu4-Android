@@ -2,6 +2,7 @@
 package com.kubosaburo.kikenotsu4.ui
 
 import android.util.Log
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -43,6 +44,9 @@ import com.kubosaburo.kikenotsu4.data.BookmarkStore
 import com.kubosaburo.kikenotsu4.data.QuizLogStore
 import com.kubosaburo.kikenotsu4.data.QuizQuestion
 import com.kubosaburo.kikenotsu4.data.TextItem
+import com.kubosaburo.kikenotsu4.data.CurriculumRoot
+import com.kubosaburo.kikenotsu4.data.CurriculumProgressStore
+import com.kubosaburo.kikenotsu4.data.CurriculumSection
 import com.kubosaburo.kikenotsu4.ui.screens.BookmarkScreen
 import com.kubosaburo.kikenotsu4.ui.screens.FreeStudyHomeScreen
 import com.kubosaburo.kikenotsu4.ui.screens.HomeMenuScreen
@@ -52,6 +56,9 @@ import com.kubosaburo.kikenotsu4.ui.screens.SectionCelebrationScreen
 import com.kubosaburo.kikenotsu4.ui.screens.TextDetailScreen
 import com.kubosaburo.kikenotsu4.ui.screens.TextListScreen
 import com.kubosaburo.kikenotsu4.ui.screens.SearchScreen
+import com.kubosaburo.kikenotsu4.ui.screens.CurriculumHomeScreen
+import com.kubosaburo.kikenotsu4.ui.screens.ReviewIntroScreen
+import com.kubosaburo.kikenotsu4.ui.screens.SettingsScreen as RealSettingsScreen
 
 private enum class BottomTab { HOME, PROGRESS, SETTINGS }
 private enum class HomeMode { MENU, FREE_STUDY, CURRICULUM, MOCK }
@@ -66,7 +73,11 @@ fun AppRoot() {
 
     var texts by remember { mutableStateOf<List<TextItem>>(emptyList()) }
     var questions by remember { mutableStateOf<List<QuizQuestion>>(emptyList()) }
+    var curriculum by remember { mutableStateOf<CurriculumRoot?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
+    var curriculumError by rememberSaveable { mutableStateOf<String?>(null) }
+    var curriculumNextSectionId by rememberSaveable { mutableStateOf<String?>(null) }
+    var curriculumCurrentSectionId by rememberSaveable { mutableStateOf<String?>(null) }
 
     var selectedTab by rememberSaveable { mutableStateOf(BottomTab.HOME) }
     var homeMode by rememberSaveable { mutableStateOf(HomeMode.MENU) }
@@ -80,10 +91,60 @@ fun AppRoot() {
     var celebrationTextId by rememberSaveable { mutableStateOf<String?>(null) }
     var celebrationIsCurriculum by rememberSaveable { mutableStateOf(false) }
 
+    // ✅ Curriculum Auto Review (SRS)
+    var isAutoReview by rememberSaveable { mutableStateOf(false) }
+    var autoReviewFinished by rememberSaveable { mutableStateOf(false) }
+
+    // ✅ Review intro (show before starting auto-review quiz)
+    var showReviewIntro by rememberSaveable { mutableStateOf(false) }
+    var reviewIntroIds by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
+
+    fun fetchDueReviewIds(context: Context, maxCount: Int = 10): List<String> {
+        // ReviewStore (QuizLogStore.kt) stores:
+        // key: "q_<questionId>"
+        // value: "ease|intervalDays|repetition|nextReviewAt|lastReviewedAt"
+        val prefs = context.getSharedPreferences("review_srs", Context.MODE_PRIVATE)
+
+        // Apply the same debug time offset as SettingsScreen (debug_clock)
+        val debugPrefs = context.getSharedPreferences("debug_clock", Context.MODE_PRIVATE)
+        val offsetDays = debugPrefs.getInt("debug_time_offset_days", 0)
+        val now = System.currentTimeMillis() + offsetDays.toLong() * 24L * 60L * 60L * 1000L
+
+        val due = ArrayList<Pair<String, Long>>()
+
+        for ((kAny, vAny) in prefs.all) {
+            val key = kAny as? String ?: continue
+            val raw = vAny as? String ?: continue
+            if (!key.startsWith("q_")) continue
+
+            // Split by '|': ease|interval|repetition|nextReviewAt|lastReviewedAt
+            val parts = raw.split('|')
+            if (parts.size != 5) continue
+            val nextAt = parts[3].toLongOrNull() ?: continue
+
+            if (nextAt <= now) {
+                val qid = key.removePrefix("q_")
+                due.add(qid to nextAt)
+            }
+        }
+
+        // older due first
+        due.sortBy { it.second }
+        return due.map { it.first }.distinct().take(maxCount)
+    }
+
+    fun mapQuestionIdsToTextId(ids: List<String>, fallbackTextId: String?): String? {
+        val firstId = ids.firstOrNull() ?: return fallbackTextId
+        return questions.firstOrNull { it.id == firstId }?.textId ?: fallbackTextId
+    }
+
     LaunchedEffect(Unit) {
         runCatching {
             texts = AssetRepository.loadTexts(context)
             questions = AssetRepository.loadQuestions(context)
+            curriculum = AssetRepository.loadCurriculum(context)
+
+            curriculumNextSectionId = CurriculumProgressStore.loadNextSectionId(context)
 
             val q0 = questions.firstOrNull()
             if (q0 != null) {
@@ -99,6 +160,90 @@ fun AppRoot() {
     }
 
     val selected: TextItem? = selectedTextId?.let { id -> texts.firstOrNull { it.id == id } }
+
+    fun findCurriculumSection(sectionId: String): CurriculumSection? {
+        val root = curriculum ?: return null
+        for (ch in root.chapters) {
+            for (sec in ch.sections) {
+                if (sec.id == sectionId) return sec
+            }
+        }
+        return null
+    }
+
+    fun openCurriculumSection(sectionId: String, sectionType: String, refId: String) {
+        curriculumError = null
+        curriculumNextSectionId = sectionId
+        CurriculumProgressStore.saveNextSectionId(context, sectionId)
+        curriculumCurrentSectionId = sectionId
+        when (sectionType) {
+            "text" -> {
+                // refId is textId like "text_001"
+                selectedTextId = refId
+            }
+            "quiz" -> {
+                // refId is groupId like "g067". QuizScreen currently expects a textId,
+                // so we map groupId -> first question's textId and also pass questionIds to limit the quiz.
+                val qForGroup = questions.filter { it.groupId == refId }
+                val mappedTextId = qForGroup.firstOrNull()?.textId
+                if (mappedTextId == null) {
+                    curriculumError = "クイズの参照IDが見つかりません: $refId"
+                    return
+                }
+                quizQuestionIds = qForGroup.map { it.id }
+                quizTextId = mappedTextId
+            }
+            else -> {
+                curriculumError = "未対応のセクション種別: $sectionType"
+            }
+        }
+    }
+
+    fun advanceCurriculumFromCurrentSection() {
+        val curId = curriculumCurrentSectionId ?: return
+        val sec = findCurriculumSection(curId) ?: return
+        val nextId = sec.nextId
+
+        // ✅ advance both "next" and "current" pointers
+        curriculumNextSectionId = nextId
+        curriculumCurrentSectionId = nextId
+
+        if (nextId == null) {
+            CurriculumProgressStore.clear(context)
+            curriculumCurrentSectionId = null
+        } else {
+            CurriculumProgressStore.saveNextSectionId(context, nextId)
+        }
+    }
+
+    LaunchedEffect(homeMode, curriculumNextSectionId, curriculum) {
+        if (homeMode != HomeMode.CURRICULUM) return@LaunchedEffect
+        val nextId = curriculumNextSectionId ?: return@LaunchedEffect
+        // すでにテキスト/クイズ/祝画面/復習イントロを開いているときは何もしない
+        if (
+            selectedTextId != null ||
+            quizTextId != null ||
+            celebrationMessage != null ||
+            showReviewIntro
+        ) return@LaunchedEffect
+
+        // ✅ Curriculum: show auto-review intro BEFORE opening the next text
+        val dueIds = fetchDueReviewIds(context, maxCount = 10)
+        if (dueIds.isNotEmpty()) {
+            showReviewIntro = true
+            reviewIntroIds = dueIds
+            return@LaunchedEffect
+        }
+
+        val sec = findCurriculumSection(nextId)
+        if (sec == null) {
+            curriculumError = "続きのセクションが見つかりません: $nextId"
+            CurriculumProgressStore.clear(context)
+            curriculumNextSectionId = null
+            return@LaunchedEffect
+        }
+        openCurriculumSection(sec.id, sec.type, sec.refId)
+    }
 
     fun topBarTextProgressParts(): Pair<String, String?> {
         val total = texts.size
@@ -133,6 +278,7 @@ fun AppRoot() {
                                 selectedTab == BottomTab.PROGRESS -> "進捗"
                                 selectedTab == BottomTab.SETTINGS -> "設定"
                                 celebrationMessage != null -> "お疲れさま！"
+                                quizTextId != null && isAutoReview -> "復習問題"
                                 quizTextId != null -> "クイズ"
                                 homeMode == HomeMode.MENU -> "ホーム"
                                 homeMode == HomeMode.CURRICULUM -> "カリキュラム"
@@ -145,8 +291,8 @@ fun AppRoot() {
 
                         Text(
                             text = topTitle,
-                            style = if (topTitle == "ホーム") MaterialTheme.typography.titleSmall else MaterialTheme.typography.titleMedium,
-                            fontWeight = if (topTitle == "ホーム" || topTitle == "自分で学ぶ") FontWeight.Bold else FontWeight.Normal
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 },
@@ -303,11 +449,47 @@ fun AppRoot() {
             }
 
             selectedTab == BottomTab.SETTINGS -> {
-                SettingsScreen(contentPadding = innerPadding)
+                RealSettingsScreen(contentPadding = innerPadding)
             }
 
             error != null -> {
                 Text("読み込みに失敗しました: $error")
+            }
+
+            showReviewIntro && reviewIntroIds.isNotEmpty() -> {
+                ReviewIntroScreen(
+                    contentPadding = innerPadding,
+                    dueCount = reviewIntroIds.size,
+                    onStartReview = {
+                        isAutoReview = true
+                        autoReviewFinished = false
+
+                        val mappedTextId = mapQuestionIdsToTextId(
+                            reviewIntroIds,
+                            curriculumCurrentSectionId?.let { curSecId ->
+                                val curSec = findCurriculumSection(curSecId)
+                                if (curSec?.type == "text") curSec.refId else null
+                            }
+                        )
+
+                        quizQuestionIds = reviewIntroIds
+                        quizTextId = mappedTextId
+
+                        // close intro
+                        showReviewIntro = false
+                        reviewIntroIds = emptyList()
+
+                        // ensure we stay in curriculum flow
+                        selectedTab = BottomTab.HOME
+                        homeMode = HomeMode.CURRICULUM
+                        freeStudyMode = FreeStudyMode.HOME
+                    },
+                    onLater = {
+                        // just close intro; curriculum auto-open will continue
+                        showReviewIntro = false
+                        reviewIntroIds = emptyList()
+                    }
+                )
             }
 
             celebrationMessage != null && celebrationTextId != null -> {
@@ -316,12 +498,69 @@ fun AppRoot() {
                     message = msg,
                     isCurriculum = celebrationIsCurriculum,
                     onTapNext = {
+                        // clear celebration + quiz UI state
                         selectedTextId = null
-                        homeMode = HomeMode.FREE_STUDY
-                        freeStudyMode = FreeStudyMode.TEXT_LIST
+                        quizTextId = null
+                        quizQuestionIds = emptyList()
                         celebrationMessage = null
                         celebrationTextId = null
-                        celebrationIsCurriculum = false
+                        curriculumError = null
+
+                        if (celebrationIsCurriculum) {
+                            // ✅ If we just finished an auto-review, resume curriculum without chaining more auto-reviews immediately.
+                            if (autoReviewFinished) {
+                                autoReviewFinished = false
+                                isAutoReview = false
+                                reviewIntroIds = emptyList()
+                                showReviewIntro = false
+                            } else {
+                                // ✅ Curriculum Auto Review: show intro first if any due items exist.
+                                val dueIds = fetchDueReviewIds(context, maxCount = 10)
+                                if (dueIds.isNotEmpty()) {
+                                    showReviewIntro = true
+                                    reviewIntroIds = dueIds
+
+                                    // ensure we stay in curriculum flow
+                                    selectedTab = BottomTab.HOME
+                                    homeMode = HomeMode.CURRICULUM
+                                    freeStudyMode = FreeStudyMode.HOME
+
+                                    celebrationIsCurriculum = false
+                                    return@SectionCelebrationScreen
+                                }
+                            }
+
+                            // ✅ Curriculum: open the next section immediately (no list)
+                            celebrationIsCurriculum = false
+                            selectedTab = BottomTab.HOME
+                            homeMode = HomeMode.CURRICULUM
+
+                            val nextId = curriculumNextSectionId
+                            if (nextId == null) {
+                                // curriculum finished
+                                CurriculumProgressStore.clear(context)
+                                curriculumCurrentSectionId = null
+                                homeMode = HomeMode.MENU
+                                return@SectionCelebrationScreen
+                            }
+
+                            val nextSec = findCurriculumSection(nextId)
+                            if (nextSec == null) {
+                                curriculumError = "続きのセクションが見つかりません: $nextId"
+                                CurriculumProgressStore.clear(context)
+                                curriculumNextSectionId = null
+                                curriculumCurrentSectionId = null
+                                homeMode = HomeMode.MENU
+                                return@SectionCelebrationScreen
+                            }
+
+                            openCurriculumSection(nextSec.id, nextSec.type, nextSec.refId)
+                        } else {
+                            // FreeStudy: return to text list
+                            celebrationIsCurriculum = false
+                            homeMode = HomeMode.FREE_STUDY
+                            freeStudyMode = FreeStudyMode.TEXT_LIST
+                        }
                     }
                 )
             }
@@ -336,20 +575,62 @@ fun AppRoot() {
                         selectedTextId = tid
                         quizTextId = null
                         quizQuestionIds = emptyList()
+                        isAutoReview = false
+                        autoReviewFinished = false
                     },
                     questionIds = quizQuestionIds.takeIf { it.isNotEmpty() },
                     onAnswerCommitted = { qid, isCorrect ->
                         quizLogStore.recordAnswer(qid, isCorrect)
                     },
                     onShowCelebration = { total, correct, _ ->
+                        // ✅ capture state at the exact moment the quiz finishes
+                        val curHomeMode = homeMode
+                        val curTab = selectedTab
+                        val curSection = curriculumCurrentSectionId
+                        val curNext = curriculumNextSectionId
+
+                        // homeMode は Quiz 表示中でも他導線で変化しうるので、進捗ストアの状態も併用して判定
+                        val isCurriculumNow = (curHomeMode == HomeMode.CURRICULUM) || (curSection != null)
+
+                        Log.d(
+                            "CurriculumFlow",
+                            "onShowCelebration(homeMode=$curHomeMode tab=$curTab) curSection=$curSection nextSection=$curNext textId=$tid total=$total correct=$correct"
+                        )
+
+                        if (isCurriculumNow) {
+                            if (isAutoReview) {
+                                // ✅ Auto-review finished: do NOT advance curriculum pointers here.
+                                celebrationIsCurriculum = true
+                                autoReviewFinished = true
+                                Log.d("CurriculumFlow", "auto-review finished (no advance).")
+                            } else {
+                                // ✅ curriculum: advance to next section (usually the next text)
+                                advanceCurriculumFromCurrentSection()
+                                celebrationIsCurriculum = true
+
+                                // 念のため、タブ/モードもカリキュラムに寄せておく（戻り先が一覧になる事故を防ぐ）
+                                selectedTab = BottomTab.HOME
+                                homeMode = HomeMode.CURRICULUM
+                                freeStudyMode = FreeStudyMode.HOME
+
+                                Log.d(
+                                    "CurriculumFlow",
+                                    "advanced curriculum -> curSection(after)=$curriculumCurrentSectionId nextSection(after)=$curriculumNextSectionId"
+                                )
+                            }
+                        } else {
+                            celebrationIsCurriculum = false
+                        }
+
                         val allCorrect = (correct == total)
                         celebrationTextId = tid
-                        celebrationIsCurriculum = false
                         celebrationMessage = if (allCorrect) {
                             "全問正解！最高！🎉"
                         } else {
                             "おつかれさま！よく頑張ったね！🎉"
                         }
+
+                        // close quiz
                         quizTextId = null
                         quizQuestionIds = emptyList()
                     },
@@ -362,6 +643,23 @@ fun AppRoot() {
                     textItem = selected,
                     contentPadding = innerPadding,
                     onStartQuiz = { tid: String ->
+                        if (homeMode == HomeMode.CURRICULUM) {
+                            // ✅ カリキュラム：現在の text セクションの nextId（通常は quiz セクション）を開く
+                            val textSecId = curriculumCurrentSectionId
+                            val textSec = textSecId?.let { findCurriculumSection(it) }
+                            val quizSec = textSec?.nextId?.let { findCurriculumSection(it) }
+
+                            if (quizSec == null) {
+                                curriculumError = "次のクイズセクションが見つかりません"
+                                return@TextDetailScreen
+                            }
+
+                            // quiz を「現在地」にして開く
+                            openCurriculumSection(quizSec.id, quizSec.type, quizSec.refId)
+                            return@TextDetailScreen
+                        }
+
+                        // FreeStudy等：従来通り textId でクイズを開く
                         quizQuestionIds = emptyList()
                         quizTextId = tid
                     },
@@ -422,11 +720,34 @@ fun AppRoot() {
             }
 
             homeMode == HomeMode.CURRICULUM -> {
-                PlaceholderModeScreen(
-                    title = "カリキュラムで学ぶ（準備中）",
-                    contentPadding = innerPadding,
-                    onBack = { homeMode = HomeMode.MENU }
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                ) {
+                    if (curriculumError != null) {
+                        Text(
+                            text = curriculumError!!,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+
+                    CurriculumHomeScreen(
+                        contentPadding = PaddingValues(0.dp),
+                        chapters = curriculum?.chapters ?: emptyList(),
+                        onOpenChapter = { chapterId ->
+                            val ch = curriculum?.chapters?.firstOrNull { it.id == chapterId }
+                            val first = ch?.sections?.firstOrNull()
+                            if (first == null) {
+                                curriculumError = "この章にはセクションがありません: $chapterId"
+                                return@CurriculumHomeScreen
+                            }
+                            openCurriculumSection(first.id, first.type, first.refId)
+                        }
+                    )
+                }
             }
 
             homeMode == HomeMode.MOCK -> {
@@ -467,21 +788,5 @@ private fun PlaceholderModeScreen(
     ) {
         Text(title)
         Button(onClick = onBack) { Text("戻る") }
-    }
-}
-
-@Composable
-private fun SettingsScreen(
-    contentPadding: PaddingValues
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(contentPadding)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text("設定（準備中）")
-        Text("ここに通知・サウンド・開発用設定などを追加していきます。")
     }
 }

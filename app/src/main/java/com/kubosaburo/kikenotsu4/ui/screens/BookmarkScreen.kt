@@ -71,23 +71,23 @@ fun BookmarkScreen(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
 
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "ブックマークで学ぶ",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.weight(1f)
-                )
-
-                IconButton(onClick = { reload() }) {
-                    Icon(Icons.Filled.Refresh, contentDescription = "更新")
-                }
-            }
-        }
+//        item {
+//            Row(
+//                modifier = Modifier.fillMaxWidth(),
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                Text(
+//                    text = "ブックマークで学ぶ",
+//                    style = MaterialTheme.typography.titleLarge,
+//                    fontWeight = FontWeight.Bold,
+//                    modifier = Modifier.weight(1f)
+//                )
+//
+//                IconButton(onClick = { reload() }) {
+//                    Icon(Icons.Filled.Refresh, contentDescription = "更新")
+//                }
+//            }
+//        }
 
         item {
             Box(
