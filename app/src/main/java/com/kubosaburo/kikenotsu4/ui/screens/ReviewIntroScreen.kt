@@ -1,4 +1,3 @@
-
 package com.kubosaburo.kikenotsu4.ui.screens
 
 import android.content.Context
@@ -10,13 +9,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.BasicText
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,7 +44,7 @@ fun ReviewIntroScreen(
     contentPadding: PaddingValues,
     dueCount: Int,
     onStartReview: () -> Unit,
-    onLater: () -> Unit,
+    @Suppress("UNUSED_PARAMETER") onLater: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
@@ -138,22 +135,22 @@ fun ReviewIntroScreen(
             shape = MaterialTheme.shapes.large,
             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text("学習を続ける ▶︎", fontWeight = FontWeight.Bold)
+            Text("復習問題を解く ▶︎", fontWeight = FontWeight.Bold)
         }
 
         Spacer(Modifier.height(10.dp))
 
-        OutlinedButton(
-            onClick = onLater,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(48.dp),
-            shape = MaterialTheme.shapes.large
-        ) {
-            Text("あとで")
-        }
-
-        Spacer(Modifier.height(10.dp))
+//        OutlinedButton(
+//            onClick = onLater,
+//            modifier = Modifier
+//                .fillMaxWidth()
+//                .height(48.dp),
+//            shape = MaterialTheme.shapes.large
+//        ) {
+//            Text("あとで")
+//        }
+//
+//        Spacer(Modifier.height(10.dp))
     }
 }
 
@@ -162,12 +159,26 @@ private fun loadStartingPraiseMessages(context: Context): List<String> {
         val json = context.assets.open("praise_messages.json").bufferedReader().use { it.readText() }
         val root = JSONObject(json)
         val arr = root.optJSONArray("startingPraise_messages") ?: return@runCatching emptyList<String>()
+
         buildList {
             for (i in 0 until arr.length()) {
-                val s = arr.optString(i).orEmpty().trim()
+                val any = arr.opt(i) ?: continue
+
+                val s = when (any) {
+                    is String -> any
+                    is JSONObject -> {
+                        // Support multiple possible field names
+                        any.optString("text", "").ifBlank {
+                            any.optString("text2", "").ifBlank {
+                                any.optString("message", "")
+                            }
+                        }
+                    }
+                    else -> any.toString()
+                }.trim()
+
                 if (s.isNotEmpty()) add(s)
             }
         }
     }.getOrElse { emptyList() }
 }
-

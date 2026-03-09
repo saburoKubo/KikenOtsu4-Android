@@ -117,12 +117,11 @@ private object ReviewStore {
         }
     }
 
-    /** 日付シミュレーションを反映した "今" で due を返す */
-    fun fetchDueIds(context: Context, maxCount: Int): List<String> {
-        return fetchDueIds(context, maxCount, ReviewClock.nowMillis(context))
-    }
-
-    /** 今日(=now)までに期限が来ている復習IDを返す（UI側は後で） */
+    /**
+     * 今日(=now)までに期限が来ている復習IDを返す。
+     * デバッグの「日付シミュレーション(+N日)」を反映したい場合は、
+     * `now` に `ReviewClock.nowMillis(context)` を渡す。
+     */
     fun fetchDueIds(context: Context, maxCount: Int, now: Long): List<String> {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         val all = prefs.all

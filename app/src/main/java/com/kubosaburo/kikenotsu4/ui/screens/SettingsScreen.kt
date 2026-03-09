@@ -11,15 +11,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -28,7 +31,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.edit
+import com.kubosaburo.kikenotsu4.ui.screens.FinalCelebrationScreen
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -50,6 +56,7 @@ fun SettingsScreen(
     var offsetDays by rememberSaveable {
         mutableIntStateOf(DebugClock.loadOffsetDays(context))
     }
+    var showFinalCelebrationPreview by rememberSaveable { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -86,6 +93,28 @@ fun SettingsScreen(
                     DebugClock.saveOffsetDays(context, newDays)
                 }
             )
+            DebugFinalCelebrationTestCard(
+                onOpen = { showFinalCelebrationPreview = true }
+            )
+        }
+
+        if (showFinalCelebrationPreview) {
+            Dialog(
+                onDismissRequest = { showFinalCelebrationPreview = false },
+                properties = DialogProperties(usePlatformDefaultWidth = false)
+            ) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .safeDrawingPadding()
+                ) {
+                    // FinalCelebrationScreen should call onGoHome when the user taps its main button.
+                    FinalCelebrationScreen(
+                        contentPadding = PaddingValues(0.dp),
+                        onGoHome = { showFinalCelebrationPreview = false }
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -148,6 +177,50 @@ private fun DebugTimeTravelCard(
 
             Text(
                 "※ 復習（忘却曲線）の期限判定で DebugClock.nowMillis(context) を使うと、日付をずらして復習を出せます。",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun DebugFinalCelebrationTestCard(
+    onOpen: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text("開発用（DEBUG）", fontWeight = FontWeight.Bold)
+
+            Text(
+                "最終祝画面（FinalCelebration）をいつでも開いて、UIとボタン導線（閉じる動作）を確認できます。",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    onClick = onOpen,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("最終祝画面を表示")
+                }
+            }
+
+            Text(
+                "※ このプレビューは設定画面上の全画面ダイアログとして表示します。実際のアプリ遷移（ホームへ戻る等）の確認は AppRoot 側の導線で行ってください。",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

@@ -43,7 +43,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.kubosaburo.kikenotsu4.data.QuizQuestion
-import com.kubosaburo.kikenotsu4.ui.parseBoldMarkdown
+// import com.kubosaburo.kikenotsu4.ui.parseBoldMarkdown
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import android.media.MediaPlayer
@@ -97,6 +101,27 @@ fun QuizScreen(
 
     val context = LocalContext.current
     val praiseProvider = remember { PraiseMessageProvider(context) }
+
+    fun mdBold(text: String): AnnotatedString = buildAnnotatedString {
+        if (text.isEmpty()) return@buildAnnotatedString
+        val pattern = Regex("\\*\\*(.+?)\\*\\*")
+        var last = 0
+        for (m in pattern.findAll(text)) {
+            val start = m.range.first
+            val end = m.range.last + 1
+            if (start > last) {
+                append(text.substring(last, start))
+            }
+            val inner = m.groupValues.getOrNull(1).orEmpty()
+            withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                append(inner)
+            }
+            last = end
+        }
+        if (last < text.length) {
+            append(text.substring(last))
+        }
+    }
 
     fun playSe(resId: Int) {
         runCatching {
@@ -190,7 +215,7 @@ fun QuizScreen(
                         }
 
                         Text(
-                            text = q.question,
+                            text = mdBold(q.question),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier
@@ -325,7 +350,7 @@ fun QuizScreen(
                         Spacer(Modifier.width(14.dp))
 
                         Text(
-                            text = choice,
+                            text = mdBold(choice),
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
@@ -380,7 +405,7 @@ fun QuizScreen(
                             }
 
                             Text(
-                                text = parseBoldMarkdown(q.explanation),
+                                text = mdBold(q.explanation),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier

@@ -1,4 +1,8 @@
 @file:OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@file:Suppress(
+    "ASSIGNED_VALUE_IS_NEVER_READ",
+    "UNUSED_VARIABLE"
+)
 package com.kubosaburo.kikenotsu4.ui
 
 import android.util.Log
@@ -58,6 +62,7 @@ import com.kubosaburo.kikenotsu4.ui.screens.TextListScreen
 import com.kubosaburo.kikenotsu4.ui.screens.SearchScreen
 import com.kubosaburo.kikenotsu4.ui.screens.CurriculumHomeScreen
 import com.kubosaburo.kikenotsu4.ui.screens.ReviewIntroScreen
+import com.kubosaburo.kikenotsu4.ui.screens.FinalCelebrationScreen
 import com.kubosaburo.kikenotsu4.ui.screens.SettingsScreen as RealSettingsScreen
 
 private enum class BottomTab { HOME, PROGRESS, SETTINGS }
@@ -90,6 +95,7 @@ fun AppRoot() {
     var celebrationMessage by rememberSaveable { mutableStateOf<String?>(null) }
     var celebrationTextId by rememberSaveable { mutableStateOf<String?>(null) }
     var celebrationIsCurriculum by rememberSaveable { mutableStateOf(false) }
+    var showFinalCelebration by rememberSaveable { mutableStateOf(false) }
 
     // ✅ Curriculum Auto Review (SRS)
     var isAutoReview by rememberSaveable { mutableStateOf(false) }
@@ -98,6 +104,8 @@ fun AppRoot() {
     // ✅ Review intro (show before starting auto-review quiz)
     var showReviewIntro by rememberSaveable { mutableStateOf(false) }
     var reviewIntroIds by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
+// ✅ 現在の復習セッションID（戻る用に保持）
+    var activeReviewIds by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
 
     fun fetchDueReviewIds(context: Context, maxCount: Int = 10): List<String> {
         // ReviewStore (QuizLogStore.kt) stores:
@@ -112,16 +120,16 @@ fun AppRoot() {
 
         val due = ArrayList<Pair<String, Long>>()
 
-        for ((kAny, vAny) in prefs.all) {
-            val key = kAny as? String ?: continue
-            val raw = vAny as? String ?: continue
+        // `prefs.all` is a Map<String, *> so the key is already String; no casts needed.
+        for ((key, valueAny) in prefs.all) {
+            val raw = valueAny as? String ?: continue
             if (!key.startsWith("q_")) continue
 
             // Split by '|': ease|interval|repetition|nextReviewAt|lastReviewedAt
             val parts = raw.split('|')
             if (parts.size != 5) continue
-            val nextAt = parts[3].toLongOrNull() ?: continue
 
+            val nextAt = parts[3].toLongOrNull() ?: continue
             if (nextAt <= now) {
                 val qid = key.removePrefix("q_")
                 due.add(qid to nextAt)
@@ -134,7 +142,8 @@ fun AppRoot() {
     }
 
     fun mapQuestionIdsToTextId(ids: List<String>, fallbackTextId: String?): String? {
-        val firstId = ids.firstOrNull() ?: return fallbackTextId
+        val safeIds = ids.ifEmpty { return fallbackTextId }
+        val firstId = safeIds.first()
         return questions.firstOrNull { it.id == firstId }?.textId ?: fallbackTextId
     }
 
@@ -185,11 +194,12 @@ fun AppRoot() {
                 // refId is groupId like "g067". QuizScreen currently expects a textId,
                 // so we map groupId -> first question's textId and also pass questionIds to limit the quiz.
                 val qForGroup = questions.filter { it.groupId == refId }
-                val mappedTextId = qForGroup.firstOrNull()?.textId
-                if (mappedTextId == null) {
+                val firstQ = qForGroup.ifEmpty {
                     curriculumError = "クイズの参照IDが見つかりません: $refId"
                     return
-                }
+                }.first()
+
+                val mappedTextId = firstQ.textId
                 quizQuestionIds = qForGroup.map { it.id }
                 quizTextId = mappedTextId
             }
@@ -277,6 +287,7 @@ fun AppRoot() {
                             when {
                                 selectedTab == BottomTab.PROGRESS -> "進捗"
                                 selectedTab == BottomTab.SETTINGS -> "設定"
+                                showFinalCelebration -> "おめでとう！"
                                 celebrationMessage != null -> "お疲れさま！"
                                 quizTextId != null && isAutoReview -> "復習問題"
                                 quizTextId != null -> "クイズ"
@@ -324,9 +335,27 @@ fun AppRoot() {
                             val tid = quizTextId!!
                             IconButton(
                                 onClick = {
-                                    selectedTextId = tid
-                                    quizTextId = null
-                                    quizQuestionIds = emptyList()
+                                    if (isAutoReview) {
+                                        // ✅ 復習中：ReviewIntroScreenへ戻る
+                                        quizTextId = null
+                                        quizQuestionIds = emptyList()
+
+                                        val ids = activeReviewIds.ifEmpty {
+                                            fetchDueReviewIds(context, maxCount = 10)
+                                        }
+
+                                        reviewIntroIds = ids
+                                        showReviewIntro = ids.isNotEmpty()
+
+                                        // 復習モード解除（Introに戻ったので）
+                                        isAutoReview = false
+                                        autoReviewFinished = false
+                                    } else {
+                                        // ✅ 通常クイズ：テキストへ戻る
+                                        selectedTextId = tid
+                                        quizTextId = null
+                                        quizQuestionIds = emptyList()
+                                    }
                                 },
                                 modifier = Modifier
                                     .padding(start = 12.dp)
@@ -421,6 +450,14 @@ fun AppRoot() {
                         celebrationMessage = null
                         celebrationTextId = null
                         celebrationIsCurriculum = false
+                        // ✅ Also close ReviewIntro / auto-review states so HOME tap always works
+                        showReviewIntro = false
+                        reviewIntroIds = emptyList()
+                        activeReviewIds = emptyList()
+                        isAutoReview = false
+                        autoReviewFinished = false
+                        curriculumError = null
+                        showFinalCelebration = false
                     },
                     icon = { Icon(Icons.Filled.Home, contentDescription = "ホーム") },
                     label = { Text("ホーム") }
@@ -441,6 +478,27 @@ fun AppRoot() {
         }
     ) { innerPadding ->
         when {
+            showFinalCelebration -> {
+                FinalCelebrationScreen(
+                    contentPadding = innerPadding,
+                    onGoHome = {
+                        // reset to Home menu
+                        showFinalCelebration = false
+                        selectedTab = BottomTab.HOME
+                        homeMode = HomeMode.MENU
+                        freeStudyMode = FreeStudyMode.HOME
+                        selectedTextId = null
+                        quizTextId = null
+                        quizQuestionIds = emptyList()
+                        celebrationMessage = null
+                        celebrationTextId = null
+                        celebrationIsCurriculum = false
+                        curriculumError = null
+                        curriculumNextSectionId = null
+                        curriculumCurrentSectionId = null
+                    }
+                )
+            }
             selectedTab == BottomTab.PROGRESS -> {
                 ProgressScreen(
                     quizLogStore = quizLogStore,
@@ -471,6 +529,7 @@ fun AppRoot() {
                                 if (curSec?.type == "text") curSec.refId else null
                             }
                         )
+                        activeReviewIds = reviewIntroIds
 
                         quizQuestionIds = reviewIntroIds
                         quizTextId = mappedTextId
@@ -537,10 +596,11 @@ fun AppRoot() {
 
                             val nextId = curriculumNextSectionId
                             if (nextId == null) {
-                                // curriculum finished
+                                // ✅ curriculum finished -> show final celebration
                                 CurriculumProgressStore.clear(context)
+                                curriculumNextSectionId = null
                                 curriculumCurrentSectionId = null
-                                homeMode = HomeMode.MENU
+                                showFinalCelebration = true
                                 return@SectionCelebrationScreen
                             }
 
@@ -752,7 +812,6 @@ fun AppRoot() {
 
             homeMode == HomeMode.MOCK -> {
                 PlaceholderModeScreen(
-                    title = "模擬テストで学ぶ（準備中）",
                     contentPadding = innerPadding,
                     onBack = { homeMode = HomeMode.MENU }
                 )
@@ -772,10 +831,8 @@ fun AppRoot() {
         }
     }
 }
-
 @Composable
 private fun PlaceholderModeScreen(
-    title: String,
     contentPadding: PaddingValues,
     onBack: () -> Unit
 ) {
@@ -786,7 +843,7 @@ private fun PlaceholderModeScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text(title)
+        Text("模擬テストで学ぶ（準備中）")
         Button(onClick = onBack) { Text("戻る") }
     }
 }

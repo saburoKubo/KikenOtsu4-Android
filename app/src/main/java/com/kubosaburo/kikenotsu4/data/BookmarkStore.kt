@@ -1,13 +1,8 @@
-
 package com.kubosaburo.kikenotsu4.data
 
 import android.content.Context
 import androidx.core.content.edit
 
-/**
- * ブックマーク保存（最小実装）
- * - textId の Set<String> を SharedPreferences に保存する
- */
 class BookmarkStore(context: Context) {
 
     private val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -59,4 +54,3 @@ class BookmarkStore(context: Context) {
         private const val KEY_TEXT_IDS = "bookmarked_text_ids"
     }
 }
-
