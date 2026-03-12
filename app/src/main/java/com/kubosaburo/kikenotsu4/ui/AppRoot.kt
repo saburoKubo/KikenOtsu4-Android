@@ -18,6 +18,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Button
@@ -434,6 +436,27 @@ fun AppRoot() {
                             }
                         }
                     }
+                },
+                actions = {
+                    if (selected != null) {
+                        IconButton(
+                            onClick = {
+                                bookmarkStore.toggle(selected.id)
+                                bookmarkedTextIds = bookmarkStore.loadBookmarkedTextIds().toSet()
+                            },
+                            modifier = Modifier
+                                .padding(end = 12.dp)
+                                .size(36.dp)
+                                .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+                        ) {
+                            val isBookmarked = bookmarkedTextIds.contains(selected.id)
+                            Icon(
+                                imageVector = if (isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+                                contentDescription = if (isBookmarked) "ブックマーク解除" else "ブックマーク追加",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
             )
         },
@@ -694,7 +717,76 @@ fun AppRoot() {
                         quizTextId = null
                         quizQuestionIds = emptyList()
                     },
-                    onFinish = { _, _, _ -> }
+                    onFinish = { total, correct, _ ->
+                        if (isAutoReview) {
+                            // 復習10問がすべて終わったら、SectionCelebration を出さずに
+                            // そのままカリキュラムの次セクションへ戻す。
+                            quizTextId = null
+                            quizQuestionIds = emptyList()
+                            showReviewIntro = false
+                            reviewIntroIds = emptyList()
+                            activeReviewIds = emptyList()
+                            isAutoReview = false
+                            autoReviewFinished = false
+
+                            selectedTab = BottomTab.HOME
+                            homeMode = HomeMode.CURRICULUM
+                            freeStudyMode = FreeStudyMode.HOME
+
+                            val nextId = curriculumNextSectionId
+                            if (nextId == null) {
+                                CurriculumProgressStore.clear(context)
+                                curriculumNextSectionId = null
+                                curriculumCurrentSectionId = null
+                                showFinalCelebration = true
+                            } else {
+                                val nextSec = findCurriculumSection(nextId)
+                                if (nextSec == null) {
+                                    curriculumError = "続きのセクションが見つかりません: $nextId"
+                                    CurriculumProgressStore.clear(context)
+                                    curriculumNextSectionId = null
+                                    curriculumCurrentSectionId = null
+                                    homeMode = HomeMode.MENU
+                                } else {
+                                    openCurriculumSection(nextSec.id, nextSec.type, nextSec.refId)
+                                }
+                            }
+                        } else {
+                            // 通常クイズ（カリキュラムの quiz セクションなど）で
+                            // questionIds 経由の完了時も、最後は祝画面へ進める。
+                            val curHomeMode = homeMode
+                            val curTab = selectedTab
+                            val curSection = curriculumCurrentSectionId
+                            val curNext = curriculumNextSectionId
+                            val isCurriculumNow = (curHomeMode == HomeMode.CURRICULUM) || (curSection != null)
+
+                            Log.d(
+                                "CurriculumFlow",
+                                "onFinish(homeMode=$curHomeMode tab=$curTab) curSection=$curSection nextSection=$curNext textId=$tid total=$total correct=$correct"
+                            )
+
+                            if (isCurriculumNow) {
+                                advanceCurriculumFromCurrentSection()
+                                celebrationIsCurriculum = true
+                                selectedTab = BottomTab.HOME
+                                homeMode = HomeMode.CURRICULUM
+                                freeStudyMode = FreeStudyMode.HOME
+                            } else {
+                                celebrationIsCurriculum = false
+                            }
+
+                            val allCorrect = (correct == total)
+                            celebrationTextId = tid
+                            celebrationMessage = if (allCorrect) {
+                                "全問正解！最高！🎉"
+                            } else {
+                                "おつかれさま！よく頑張ったね！🎉"
+                            }
+
+                            quizTextId = null
+                            quizQuestionIds = emptyList()
+                        }
+                    }
                 )
             }
 
@@ -723,11 +815,6 @@ fun AppRoot() {
                         quizQuestionIds = emptyList()
                         quizTextId = tid
                     },
-                    isBookmarked = bookmarkedTextIds.contains(selected.id),
-                    onToggleBookmark = {
-                        bookmarkStore.toggle(selected.id)
-                        bookmarkedTextIds = bookmarkStore.loadBookmarkedTextIds().toSet()
-                    }
                 )
             }
 

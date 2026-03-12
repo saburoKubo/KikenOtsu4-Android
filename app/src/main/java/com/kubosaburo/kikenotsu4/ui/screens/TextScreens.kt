@@ -18,15 +18,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bookmark
-import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -136,9 +133,7 @@ fun TextListScreen(
 fun TextDetailScreen(
     textItem: TextItem,
     contentPadding: PaddingValues,
-    onStartQuiz: (String) -> Unit,
-    isBookmarked: Boolean = false,
-    onToggleBookmark: () -> Unit = {}
+    onStartQuiz: (String) -> Unit
 ) {
     var zoomImageResId by remember { mutableStateOf<Int?>(null) }
     if (zoomImageResId != null) {
@@ -178,23 +173,7 @@ fun TextDetailScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Box(modifier = Modifier.weight(1f)) {
-                    TextTitleCard(title = textItem.title)
-                }
-
-                IconButton(onClick = onToggleBookmark) {
-                    Icon(
-                        imageVector = if (isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
-                        contentDescription = "ブックマーク",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
+            TextTitleCard(title = textItem.title)
         }
 
         items(textItem.content.indices.toList()) { idx ->

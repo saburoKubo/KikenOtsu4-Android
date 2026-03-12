@@ -29,6 +29,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
+import com.kubosaburo.kikenotsu4.ui.theme.KikenOtsu4Theme
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -268,4 +270,24 @@ object DebugClock {
 // BuildConfig に依存せず「このアプリがデバッグ可能か」を判定する
 private fun isDebugBuild(context: Context): Boolean {
     return (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+private fun SettingsScreenPreview() {
+    KikenOtsu4Theme {
+        SettingsScreen(
+            contentPadding = PaddingValues(0.dp)
+        )
+    }
+}
+
+@Preview(showBackground = true, showSystemUi = true, uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SettingsScreenDarkPreview() {
+    KikenOtsu4Theme {
+        SettingsScreen(
+            contentPadding = PaddingValues(0.dp)
+        )
+    }
 }

@@ -104,8 +104,8 @@ fun FinalCelebrationScreen(
             Spacer(Modifier.height(10.dp))
 
             TwoFrameCharacter(
-                firstRes = R.drawable.nicosme_normal,
-                secondRes = R.drawable.nicosme_happy,
+                firstRes = R.drawable.nicos_final1,
+                secondRes = R.drawable.nicos_final2,
                 size = 220.dp,
                 durationMillis = 900,
             )

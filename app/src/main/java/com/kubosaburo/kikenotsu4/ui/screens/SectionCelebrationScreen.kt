@@ -203,7 +203,7 @@ private fun ConfettiOverlay(
                 x = Random.nextFloat(),
                 y = -Random.nextFloat(),
                 speed = 0.25f + Random.nextFloat() * 0.75f,
-                size = 8f + Random.nextFloat() * 10f,
+                size = 16f + Random.nextFloat() * 18f,
                 color = colors.random()
             )
         }

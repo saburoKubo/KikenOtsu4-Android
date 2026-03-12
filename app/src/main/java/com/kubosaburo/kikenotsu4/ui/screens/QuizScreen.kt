@@ -67,12 +67,12 @@ fun QuizScreen(
     onFinish: ((total: Int, correct: Int, wrongIds: List<String>) -> Unit)? = null
 ) {
     val questions = remember(allQuestions, textId, questionIds) {
-        val base = allQuestions.filter { it.textId == textId }
         if (questionIds.isNullOrEmpty()) {
-            base
+            allQuestions.filter { it.textId == textId }
         } else {
-            val set = questionIds.toSet()
-            base.filter { set.contains(it.id) }
+            val idSet = questionIds.toSet()
+            val byId = allQuestions.filter { idSet.contains(it.id) }
+            questionIds.mapNotNull { id -> byId.firstOrNull { it.id == id } }
         }
     }
 
@@ -432,12 +432,15 @@ fun QuizScreen(
                                 if (index < questions.lastIndex) {
                                     index++
                                 } else {
-                                    // 最後の問題：✅ ResultScreen ではなく SectionCelebrationScreen を出したい
-                                    // 呼び出し側で onShowCelebration を SectionCelebrationScreen にルーティングする
                                     val total = questions.size
                                     val correct = correctCount
                                     val wrong = wrongIds
-                                    if (onShowCelebration != null) {
+
+                                    // questionIds が渡されているときは、1テキスト完了ではなく
+                                    // 復習セッション全体の完了として扱い、SectionCelebration は出さない。
+                                    if (!questionIds.isNullOrEmpty()) {
+                                        onFinish?.invoke(total, correct, wrong)
+                                    } else if (onShowCelebration != null) {
                                         onShowCelebration.invoke(total, correct, wrong)
                                     } else {
                                         // Fallback (legacy)

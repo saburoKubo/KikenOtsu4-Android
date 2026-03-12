@@ -60,7 +60,7 @@ fun HomeMenuScreen(
         // Character bubble
         CharacterSpeechBubbleView(
             characterImage1 = R.drawable.nicosme_normal,
-            characterImage2 = R.drawable.nicosme_openmouth,
+            characterImage2 = R.drawable.nicosme_run,
             durationMillis = 2200L,
             text = phrase,
             modifier = Modifier.fillMaxWidth(),
