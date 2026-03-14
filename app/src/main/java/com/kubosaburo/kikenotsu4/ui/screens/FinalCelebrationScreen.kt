@@ -1,5 +1,9 @@
 package com.kubosaburo.kikenotsu4.ui.screens
 
+import android.media.MediaPlayer
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.platform.LocalContext
+
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -68,6 +72,25 @@ fun FinalCelebrationScreen(
                 Color(0xFFFF6FAE)  // pink
             )
         )
+    }
+
+    val context = LocalContext.current
+
+    DisposableEffect(Unit) {
+        val mediaPlayer = MediaPlayer.create(context, R.raw.firework)
+        mediaPlayer?.let { player ->
+            player.setOnCompletionListener {
+                it.release()
+            }
+            player.start()
+        }
+
+        onDispose {
+            mediaPlayer?.run {
+                if (isPlaying) stop()
+                release()
+            }
+        }
     }
 
     Box(

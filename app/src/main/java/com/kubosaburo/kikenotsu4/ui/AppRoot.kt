@@ -5,8 +5,9 @@
 )
 package com.kubosaburo.kikenotsu4.ui
 
-import android.util.Log
 import android.content.Context
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,7 +23,6 @@ import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.outlined.BookmarkBorder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Button
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -31,6 +31,7 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -76,6 +77,7 @@ fun AppRoot() {
     val context = LocalContext.current
     val quizLogStore = remember { QuizLogStore(context) }
     val bookmarkStore = remember { BookmarkStore(context) }
+
     var bookmarkedTextIds by rememberSaveable { mutableStateOf<Set<String>>(emptySet()) }
 
     var texts by remember { mutableStateOf<List<TextItem>>(emptyList()) }
@@ -98,6 +100,7 @@ fun AppRoot() {
     var celebrationTextId by rememberSaveable { mutableStateOf<String?>(null) }
     var celebrationIsCurriculum by rememberSaveable { mutableStateOf(false) }
     var showFinalCelebration by rememberSaveable { mutableStateOf(false) }
+    var forceShowHomeRoot by rememberSaveable { mutableStateOf(false) }
 
     // ✅ Curriculum Auto Review (SRS)
     var isAutoReview by rememberSaveable { mutableStateOf(false) }
@@ -108,6 +111,9 @@ fun AppRoot() {
     var reviewIntroIds by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
 // ✅ 現在の復習セッションID（戻る用に保持）
     var activeReviewIds by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
+    var isFreeStudyTodayReview by rememberSaveable { mutableStateOf(false) }
+    var showNoTodayReviewDialog by rememberSaveable { mutableStateOf(false) }
+    var curriculumTextOpenedFromResume by rememberSaveable { mutableStateOf(false) }
 
     fun fetchDueReviewIds(context: Context, maxCount: Int = 10): List<String> {
         // ReviewStore (QuizLogStore.kt) stores:
@@ -149,6 +155,36 @@ fun AppRoot() {
         return questions.firstOrNull { it.id == firstId }?.textId ?: fallbackTextId
     }
 
+    fun resetToHomeRoot() {
+        // switch to Home first so we never fall back to Settings on the next recomposition
+        selectedTab = BottomTab.HOME
+        forceShowHomeRoot = true
+        homeMode = HomeMode.MENU
+        freeStudyMode = FreeStudyMode.HOME
+
+        selectedTextId = null
+        quizTextId = null
+        quizQuestionIds = emptyList()
+
+        celebrationMessage = null
+        celebrationTextId = null
+        celebrationIsCurriculum = false
+
+        showReviewIntro = false
+        reviewIntroIds = emptyList()
+        activeReviewIds = emptyList()
+        isFreeStudyTodayReview = false
+        showNoTodayReviewDialog = false
+        isAutoReview = false
+        autoReviewFinished = false
+
+        curriculumError = null
+
+        showFinalCelebration = false
+        curriculumTextOpenedFromResume = false
+    }
+
+
     LaunchedEffect(Unit) {
         runCatching {
             texts = AssetRepository.loadTexts(context)
@@ -157,12 +193,7 @@ fun AppRoot() {
 
             curriculumNextSectionId = CurriculumProgressStore.loadNextSectionId(context)
 
-            val q0 = questions.firstOrNull()
-            if (q0 != null) {
-                Log.d("AppRoot", "loaded q0.id=${q0.id} len=${q0.question.length} q='${q0.question}'")
-            } else {
-                Log.d("AppRoot", "loaded questions is empty")
-            }
+
 
             bookmarkedTextIds = bookmarkStore.loadBookmarkedTextIds().toSet()
         }.onFailure {
@@ -228,23 +259,26 @@ fun AppRoot() {
         }
     }
 
-    LaunchedEffect(homeMode, curriculumNextSectionId, curriculum) {
-        if (homeMode != HomeMode.CURRICULUM) return@LaunchedEffect
-        val nextId = curriculumNextSectionId ?: return@LaunchedEffect
-        // すでにテキスト/クイズ/祝画面/復習イントロを開いているときは何もしない
-        if (
-            selectedTextId != null ||
-            quizTextId != null ||
-            celebrationMessage != null ||
-            showReviewIntro
-        ) return@LaunchedEffect
+    fun openSavedCurriculumOrHome() {
+        curriculumError = null
 
-        // ✅ Curriculum: show auto-review intro BEFORE opening the next text
+        val nextId = curriculumNextSectionId
+        if (nextId == null) {
+            homeMode = HomeMode.CURRICULUM
+            freeStudyMode = FreeStudyMode.HOME
+            return
+        }
+
         val dueIds = fetchDueReviewIds(context, maxCount = 10)
         if (dueIds.isNotEmpty()) {
+            isFreeStudyTodayReview = false
             showReviewIntro = true
             reviewIntroIds = dueIds
-            return@LaunchedEffect
+            activeReviewIds = emptyList()
+            selectedTab = BottomTab.HOME
+            homeMode = HomeMode.CURRICULUM
+            freeStudyMode = FreeStudyMode.HOME
+            return
         }
 
         val sec = findCurriculumSection(nextId)
@@ -252,10 +286,38 @@ fun AppRoot() {
             curriculumError = "続きのセクションが見つかりません: $nextId"
             CurriculumProgressStore.clear(context)
             curriculumNextSectionId = null
-            return@LaunchedEffect
+            curriculumCurrentSectionId = null
+            homeMode = HomeMode.CURRICULUM
+            freeStudyMode = FreeStudyMode.HOME
+            return
         }
+
+        homeMode = HomeMode.CURRICULUM
+        freeStudyMode = FreeStudyMode.HOME
+        curriculumTextOpenedFromResume = true
         openCurriculumSection(sec.id, sec.type, sec.refId)
     }
+
+    fun closeTextDetailToPreviousFlow() {
+        selectedTextId = null
+        quizTextId = null
+        quizQuestionIds = emptyList()
+        celebrationMessage = null
+        celebrationTextId = null
+
+        if (curriculumCurrentSectionId != null) {
+            if (curriculumTextOpenedFromResume) {
+                curriculumTextOpenedFromResume = false
+                resetToHomeRoot()
+            } else {
+                selectedTab = BottomTab.HOME
+                forceShowHomeRoot = false
+                homeMode = HomeMode.CURRICULUM
+                freeStudyMode = FreeStudyMode.HOME
+            }
+        }
+    }
+
 
     fun topBarTextProgressParts(): Pair<String, String?> {
         val total = texts.size
@@ -287,12 +349,13 @@ fun AppRoot() {
                     } else {
                         val topTitle =
                             when {
-                                selectedTab == BottomTab.PROGRESS -> "進捗"
-                                selectedTab == BottomTab.SETTINGS -> "設定"
                                 showFinalCelebration -> "おめでとう！"
+                                forceShowHomeRoot -> "ホーム"
                                 celebrationMessage != null -> "お疲れさま！"
                                 quizTextId != null && isAutoReview -> "復習問題"
                                 quizTextId != null -> "クイズ"
+                                selectedTab == BottomTab.PROGRESS -> "進捗"
+                                selectedTab == BottomTab.SETTINGS -> "設定"
                                 homeMode == HomeMode.MENU -> "ホーム"
                                 homeMode == HomeMode.CURRICULUM -> "カリキュラム"
                                 homeMode == HomeMode.MOCK -> "模擬テスト"
@@ -374,7 +437,9 @@ fun AppRoot() {
 
                         selected != null -> {
                             IconButton(
-                                onClick = { selectedTextId = null },
+                                onClick = {
+                                    closeTextDetailToPreviousFlow()
+                                },
                                 modifier = Modifier
                                     .padding(start = 12.dp)
                                     .size(36.dp)
@@ -382,7 +447,7 @@ fun AppRoot() {
                             ) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-                                    contentDescription = "一覧へ戻る",
+                                    contentDescription = "前の画面へ戻る",
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
@@ -460,40 +525,32 @@ fun AppRoot() {
                 }
             )
         },
+
         bottomBar = {
             NavigationBar {
                 NavigationBarItem(
-                    selected = selectedTab == BottomTab.HOME,
+                    selected = forceShowHomeRoot || selectedTab == BottomTab.HOME,
                     onClick = {
-                        selectedTab = BottomTab.HOME
-                        homeMode = HomeMode.MENU
-                        selectedTextId = null
-                        quizTextId = null
-                        quizQuestionIds = emptyList()
-                        celebrationMessage = null
-                        celebrationTextId = null
-                        celebrationIsCurriculum = false
-                        // ✅ Also close ReviewIntro / auto-review states so HOME tap always works
-                        showReviewIntro = false
-                        reviewIntroIds = emptyList()
-                        activeReviewIds = emptyList()
-                        isAutoReview = false
-                        autoReviewFinished = false
-                        curriculumError = null
-                        showFinalCelebration = false
+                        resetToHomeRoot()
                     },
                     icon = { Icon(Icons.Filled.Home, contentDescription = "ホーム") },
                     label = { Text("ホーム") }
                 )
                 NavigationBarItem(
-                    selected = selectedTab == BottomTab.PROGRESS,
-                    onClick = { selectedTab = BottomTab.PROGRESS },
+                    selected = !forceShowHomeRoot && selectedTab == BottomTab.PROGRESS,
+                    onClick = {
+                        forceShowHomeRoot = false
+                        selectedTab = BottomTab.PROGRESS
+                    },
                     icon = { Icon(Icons.Filled.BarChart, contentDescription = "進捗") },
                     label = { Text("進捗") }
                 )
                 NavigationBarItem(
-                    selected = selectedTab == BottomTab.SETTINGS,
-                    onClick = { selectedTab = BottomTab.SETTINGS },
+                    selected = !forceShowHomeRoot && selectedTab == BottomTab.SETTINGS,
+                    onClick = {
+                        forceShowHomeRoot = false
+                        selectedTab = BottomTab.SETTINGS
+                    },
                     icon = { Icon(Icons.Filled.Settings, contentDescription = "設定") },
                     label = { Text("設定") }
                 )
@@ -502,23 +559,34 @@ fun AppRoot() {
     ) { innerPadding ->
         when {
             showFinalCelebration -> {
+                LaunchedEffect(Unit) {
+                    selectedTab = BottomTab.HOME
+                    homeMode = HomeMode.MENU
+                    freeStudyMode = FreeStudyMode.HOME
+                }
+
                 FinalCelebrationScreen(
                     contentPadding = innerPadding,
                     onGoHome = {
-                        // reset to Home menu
-                        showFinalCelebration = false
-                        selectedTab = BottomTab.HOME
-                        homeMode = HomeMode.MENU
+                        resetToHomeRoot()
+                    }
+                )
+            }
+            forceShowHomeRoot -> {
+                HomeMenuScreen(
+                    contentPadding = innerPadding,
+                    onGoCurriculum = {
+                        forceShowHomeRoot = false
+                        openSavedCurriculumOrHome()
+                    },
+                    onGoFreeStudy = {
+                        forceShowHomeRoot = false
+                        homeMode = HomeMode.FREE_STUDY
                         freeStudyMode = FreeStudyMode.HOME
-                        selectedTextId = null
-                        quizTextId = null
-                        quizQuestionIds = emptyList()
-                        celebrationMessage = null
-                        celebrationTextId = null
-                        celebrationIsCurriculum = false
-                        curriculumError = null
-                        curriculumNextSectionId = null
-                        curriculumCurrentSectionId = null
+                    },
+                    onGoMock = {
+                        forceShowHomeRoot = false
+                        homeMode = HomeMode.MOCK
                     }
                 )
             }
@@ -561,15 +629,28 @@ fun AppRoot() {
                         showReviewIntro = false
                         reviewIntroIds = emptyList()
 
-                        // ensure we stay in curriculum flow
                         selectedTab = BottomTab.HOME
-                        homeMode = HomeMode.CURRICULUM
-                        freeStudyMode = FreeStudyMode.HOME
+                        if (isFreeStudyTodayReview) {
+                            homeMode = HomeMode.FREE_STUDY
+                            freeStudyMode = FreeStudyMode.HOME
+                        } else {
+                            homeMode = HomeMode.CURRICULUM
+                            freeStudyMode = FreeStudyMode.HOME
+                        }
                     },
                     onLater = {
-                        // just close intro; curriculum auto-open will continue
                         showReviewIntro = false
                         reviewIntroIds = emptyList()
+                        activeReviewIds = emptyList()
+                        isAutoReview = false
+                        autoReviewFinished = false
+
+                        if (isFreeStudyTodayReview) {
+                            isFreeStudyTodayReview = false
+                            selectedTab = BottomTab.HOME
+                            homeMode = HomeMode.FREE_STUDY
+                            freeStudyMode = FreeStudyMode.HOME
+                        }
                     }
                 )
             }
@@ -675,17 +756,13 @@ fun AppRoot() {
                         // homeMode は Quiz 表示中でも他導線で変化しうるので、進捗ストアの状態も併用して判定
                         val isCurriculumNow = (curHomeMode == HomeMode.CURRICULUM) || (curSection != null)
 
-                        Log.d(
-                            "CurriculumFlow",
-                            "onShowCelebration(homeMode=$curHomeMode tab=$curTab) curSection=$curSection nextSection=$curNext textId=$tid total=$total correct=$correct"
-                        )
 
                         if (isCurriculumNow) {
                             if (isAutoReview) {
                                 // ✅ Auto-review finished: do NOT advance curriculum pointers here.
                                 celebrationIsCurriculum = true
                                 autoReviewFinished = true
-                                Log.d("CurriculumFlow", "auto-review finished (no advance).")
+
                             } else {
                                 // ✅ curriculum: advance to next section (usually the next text)
                                 advanceCurriculumFromCurrentSection()
@@ -696,10 +773,7 @@ fun AppRoot() {
                                 homeMode = HomeMode.CURRICULUM
                                 freeStudyMode = FreeStudyMode.HOME
 
-                                Log.d(
-                                    "CurriculumFlow",
-                                    "advanced curriculum -> curSection(after)=$curriculumCurrentSectionId nextSection(after)=$curriculumNextSectionId"
-                                )
+
                             }
                         } else {
                             celebrationIsCurriculum = false
@@ -719,36 +793,51 @@ fun AppRoot() {
                     },
                     onFinish = { total, correct, _ ->
                         if (isAutoReview) {
-                            // 復習10問がすべて終わったら、SectionCelebration を出さずに
-                            // そのままカリキュラムの次セクションへ戻す。
-                            quizTextId = null
-                            quizQuestionIds = emptyList()
-                            showReviewIntro = false
-                            reviewIntroIds = emptyList()
-                            activeReviewIds = emptyList()
-                            isAutoReview = false
-                            autoReviewFinished = false
+                            if (isFreeStudyTodayReview) {
+                                quizTextId = null
+                                quizQuestionIds = emptyList()
+                                showReviewIntro = false
+                                reviewIntroIds = emptyList()
+                                activeReviewIds = emptyList()
+                                isAutoReview = false
+                                autoReviewFinished = false
+                                isFreeStudyTodayReview = false
 
-                            selectedTab = BottomTab.HOME
-                            homeMode = HomeMode.CURRICULUM
-                            freeStudyMode = FreeStudyMode.HOME
-
-                            val nextId = curriculumNextSectionId
-                            if (nextId == null) {
-                                CurriculumProgressStore.clear(context)
-                                curriculumNextSectionId = null
-                                curriculumCurrentSectionId = null
-                                showFinalCelebration = true
+                                selectedTab = BottomTab.HOME
+                                homeMode = HomeMode.FREE_STUDY
+                                freeStudyMode = FreeStudyMode.HOME
                             } else {
-                                val nextSec = findCurriculumSection(nextId)
-                                if (nextSec == null) {
-                                    curriculumError = "続きのセクションが見つかりません: $nextId"
+                                // 復習10問がすべて終わったら、SectionCelebration を出さずに
+                                // そのままカリキュラムの次セクションへ戻す。
+                                quizTextId = null
+                                quizQuestionIds = emptyList()
+                                showReviewIntro = false
+                                reviewIntroIds = emptyList()
+                                activeReviewIds = emptyList()
+                                isAutoReview = false
+                                autoReviewFinished = false
+
+                                selectedTab = BottomTab.HOME
+                                homeMode = HomeMode.CURRICULUM
+                                freeStudyMode = FreeStudyMode.HOME
+
+                                val nextId = curriculumNextSectionId
+                                if (nextId == null) {
                                     CurriculumProgressStore.clear(context)
                                     curriculumNextSectionId = null
                                     curriculumCurrentSectionId = null
-                                    homeMode = HomeMode.MENU
+                                    showFinalCelebration = true
                                 } else {
-                                    openCurriculumSection(nextSec.id, nextSec.type, nextSec.refId)
+                                    val nextSec = findCurriculumSection(nextId)
+                                    if (nextSec == null) {
+                                        curriculumError = "続きのセクションが見つかりません: $nextId"
+                                        CurriculumProgressStore.clear(context)
+                                        curriculumNextSectionId = null
+                                        curriculumCurrentSectionId = null
+                                        homeMode = HomeMode.MENU
+                                    } else {
+                                        openCurriculumSection(nextSec.id, nextSec.type, nextSec.refId)
+                                    }
                                 }
                             }
                         } else {
@@ -759,11 +848,6 @@ fun AppRoot() {
                             val curSection = curriculumCurrentSectionId
                             val curNext = curriculumNextSectionId
                             val isCurriculumNow = (curHomeMode == HomeMode.CURRICULUM) || (curSection != null)
-
-                            Log.d(
-                                "CurriculumFlow",
-                                "onFinish(homeMode=$curHomeMode tab=$curTab) curSection=$curSection nextSection=$curNext textId=$tid total=$total correct=$correct"
-                            )
 
                             if (isCurriculumNow) {
                                 advanceCurriculumFromCurrentSection()
@@ -825,11 +909,44 @@ fun AppRoot() {
                             contentPadding = innerPadding,
                             onTextQuiz = { freeStudyMode = FreeStudyMode.TEXT_LIST },
                             onBookmarks = { freeStudyMode = FreeStudyMode.BOOKMARKS },
-                            onTodayReview = { homeMode = HomeMode.MENU },
+                            onTodayReview = {
+                                val dueIds = fetchDueReviewIds(context, maxCount = 10)
+                                if (dueIds.isNotEmpty()) {
+                                    isFreeStudyTodayReview = true
+                                    showReviewIntro = true
+                                    reviewIntroIds = dueIds
+                                    activeReviewIds = emptyList()
+                                    selectedTab = BottomTab.HOME
+                                    homeMode = HomeMode.FREE_STUDY
+                                    freeStudyMode = FreeStudyMode.HOME
+                                } else {
+                                    showNoTodayReviewDialog = true
+                                }
+                            },
                             onSearch = { freeStudyMode = FreeStudyMode.SEARCH },
                             characterImage1 = R.drawable.nicosme_normal,
                             characterImage2 = R.drawable.nicosme_openmouth
                         )
+
+                        if (showNoTodayReviewDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showNoTodayReviewDialog = false },
+                                title = {
+                                    Text(
+                                        text = "今日は復習はありません",
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                },
+                                text = {
+                                    Text("今日は復習対象がありません。学習を進めると復習が出てきます")
+                                },
+                                confirmButton = {
+                                    TextButton(onClick = { showNoTodayReviewDialog = false }) {
+                                        Text("OK")
+                                    }
+                                }
+                            )
+                        }
                     }
 
                     FreeStudyMode.TEXT_LIST -> {
@@ -885,6 +1002,7 @@ fun AppRoot() {
                         contentPadding = PaddingValues(0.dp),
                         chapters = curriculum?.chapters ?: emptyList(),
                         onOpenChapter = { chapterId ->
+                            curriculumTextOpenedFromResume = false
                             val ch = curriculum?.chapters?.firstOrNull { it.id == chapterId }
                             val first = ch?.sections?.firstOrNull()
                             if (first == null) {
@@ -907,7 +1025,9 @@ fun AppRoot() {
             else -> {
                 HomeMenuScreen(
                     contentPadding = innerPadding,
-                    onGoCurriculum = { homeMode = HomeMode.CURRICULUM },
+                    onGoCurriculum = {
+                        openSavedCurriculumOrHome()
+                    },
                     onGoFreeStudy = {
                         homeMode = HomeMode.FREE_STUDY
                         freeStudyMode = FreeStudyMode.HOME
