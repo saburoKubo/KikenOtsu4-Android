@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import java.util.Locale
+import com.kubosaburo.kikenotsu4.data.MockTestResultStore
 import com.kubosaburo.kikenotsu4.data.MockTestDefinition
 import com.kubosaburo.kikenotsu4.data.MockTestLoader
 import kotlinx.coroutines.delay
@@ -108,6 +109,8 @@ fun MockTestSessionScreen(
     }
 
     val answeredCorrectByQuestionId = remember { mutableStateMapOf<String, Boolean>() }
+    val startedAtMillis = remember { System.currentTimeMillis() }
+    var hasSavedResult by remember { mutableStateOf(false) }
 
     val modeTitle = mockTest?.title ?: if (isPro) {
         "通常模試（ランダム出題）"
@@ -140,6 +143,39 @@ fun MockTestSessionScreen(
         buildCategoryStats(sessionQuestions, answeredCorrectByQuestionId)
     }
 
+    fun finishSession() {
+        if (!isFinished) {
+            isFinished = true
+        }
+
+        if (hasSavedResult) return
+        hasSavedResult = true
+
+        val durationSeconds = ((System.currentTimeMillis() - startedAtMillis) / 1000L).toInt().coerceAtLeast(0)
+        val mockTestId = mockTest?.id ?: if (isPro) "mock_random" else "mock_trial_fixed"
+
+        val result = MockTestResultStore.Result(
+            mockTestId = mockTestId,
+            seed = null,
+            finishedAtMillis = System.currentTimeMillis(),
+            durationSeconds = durationSeconds,
+            total = sessionQuestions.size,
+            correct = correctCount,
+            wrong = wrongCount,
+            categoryStats = categoryStats.mapValues { (_, pair) ->
+                MockTestResultStore.CategoryStat(
+                    correct = pair.first,
+                    total = pair.second,
+                )
+            }
+        )
+
+        MockTestResultStore.recordResult(
+            context = context,
+            result = result,
+        )
+    }
+
     LaunchedEffect(isFinished, sessionQuestions.size) {
         if (isFinished || sessionQuestions.isEmpty()) return@LaunchedEffect
         while (!isFinished && remainingSeconds > 0) {
@@ -147,7 +183,7 @@ fun MockTestSessionScreen(
             remainingSeconds -= 1
         }
         if (!isFinished) {
-            isFinished = true
+            finishSession()
         }
     }
 
@@ -435,7 +471,7 @@ fun MockTestSessionScreen(
                             selectedIndex = null
                             isAnswered = false
                         } else {
-                            isFinished = true
+                            finishSession()
                         }
                     },
                     modifier = Modifier

@@ -4,7 +4,10 @@
     "UNUSED_VARIABLE"
 )
 package com.kubosaburo.kikenotsu4.ui
-
+import com.kubosaburo.kikenotsu4.data.MockTestResultStore
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import android.content.Context
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
@@ -207,6 +210,18 @@ fun AppRoot() {
     }
 
     val selected: TextItem? = selectedTextId?.let { id -> texts.firstOrNull { it.id == id } }
+
+    fun formatMockResultText(result: MockTestResultStore.Result?): String? {
+        if (result == null) return null
+        val percent = if (result.total > 0) (result.correct * 100 / result.total) else 0
+        return "${result.correct} / ${result.total}問 正解（${percent}%）"
+    }
+
+    fun formatMockDateText(result: MockTestResultStore.Result?): String? {
+        if (result == null) return null
+        val formatter = SimpleDateFormat("yyyy/MM/dd HH:mm", Locale.JAPAN)
+        return formatter.format(Date(result.finishedAtMillis))
+    }
 
     fun findCurriculumSection(sectionId: String): CurriculumSection? {
         val root = curriculum ?: return null
@@ -607,6 +622,14 @@ fun AppRoot() {
                 LaunchedEffect(Unit) {
                     proManager.refresh()
                 }
+
+                val latestTrialResult = remember(showMockTestHome) {
+                    MockTestResultStore.loadLatest(context, "mock_trial_fixed")
+                }
+                val latestRandomResult = remember(showMockTestHome) {
+                    MockTestResultStore.loadLatest(context, "mock_random")
+                }
+
                 MockTestHomeScreen(
                     contentPadding = innerPadding,
                     onStartTrial = {
@@ -659,7 +682,11 @@ fun AppRoot() {
                         showMockTestHome = false
                         showMockTestSession = true
                     },
-                    isPro = proManager.isProEnabled
+                    isPro = proManager.isProEnabled,
+                    latestTrialResultText = formatMockResultText(latestTrialResult),
+                    latestTrialDateText = formatMockDateText(latestTrialResult),
+                    latestRandomResultText = formatMockResultText(latestRandomResult),
+                    latestRandomDateText = formatMockDateText(latestRandomResult)
                 )
             }
             forceShowHomeRoot -> {

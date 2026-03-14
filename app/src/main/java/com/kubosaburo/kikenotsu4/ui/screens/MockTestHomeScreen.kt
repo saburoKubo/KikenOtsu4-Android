@@ -108,11 +108,6 @@ fun MockTestHomeScreen(
                                     "固定問題で模擬テストを体験できる枠です。まずはここから始められるようにします。"
                                 )
                             )
-                            val summary = sectionSummary(trialTest)
-                            if (summary.isNotBlank()) {
-                                append("\n")
-                                append(summary)
-                            }
                         },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -194,11 +189,6 @@ fun MockTestHomeScreen(
                                 "ランダム出題・結果保存・合格判定はこのあと順番に入れていきます。"
                             )
                         )
-                        val summary = sectionSummary(randomTest)
-                        if (summary.isNotBlank()) {
-                            append("\n")
-                            append(summary)
-                        }
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -247,13 +237,7 @@ fun MockTestHomeScreen(
                         .fillMaxWidth()
                         .height(50.dp)
                 ) {
-                    Text(
-                        if (isPro) {
-                            "ランダム模試を開始"
-                        } else {
-                            "通常模試は準備中"
-                        }
-                    )
+                    Text("ランダム模試を開始")
                 }
             }
         }
