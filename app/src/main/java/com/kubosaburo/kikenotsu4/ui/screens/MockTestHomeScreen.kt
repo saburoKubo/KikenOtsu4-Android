@@ -1,4 +1,3 @@
-
 package com.kubosaburo.kikenotsu4.ui.screens
 
 import com.kubosaburo.kikenotsu4.R
@@ -17,6 +16,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -31,10 +32,13 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun MockTestHomeScreen(
     contentPadding: PaddingValues,
-    onBack: () -> Unit,
     onStartTrial: () -> Unit,
     onStartNormalMock: (() -> Unit)? = null,
-    isPro: Boolean = false
+    isPro: Boolean = false,
+    latestTrialResultText: String? = null,
+    latestTrialDateText: String? = null,
+    latestRandomResultText: String? = null,
+    latestRandomDateText: String? = null,
 ) {
     val context = LocalContext.current
     val payload = remember {
@@ -62,6 +66,7 @@ fun MockTestHomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(contentPadding)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -112,6 +117,42 @@ fun MockTestHomeScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    if (!latestTrialResultText.isNullOrBlank() || !latestTrialDateText.isNullOrBlank()) {
+                        Card(
+                            shape = RoundedCornerShape(14.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                            )
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(
+                                    text = "前回の結果",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                if (!latestTrialResultText.isNullOrBlank()) {
+                                    Text(
+                                        text = latestTrialResultText,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
+                                if (!latestTrialDateText.isNullOrBlank()) {
+                                    Text(
+                                        text = latestTrialDateText,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        }
+                    }
 
                     Button(
                         onClick = onStartTrial,
@@ -162,6 +203,42 @@ fun MockTestHomeScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                if (!latestRandomResultText.isNullOrBlank() || !latestRandomDateText.isNullOrBlank()) {
+                    Card(
+                        shape = RoundedCornerShape(14.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp, vertical = 10.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "前回の結果",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            if (!latestRandomResultText.isNullOrBlank()) {
+                                Text(
+                                    text = latestRandomResultText,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                            if (!latestRandomDateText.isNullOrBlank()) {
+                                Text(
+                                    text = latestRandomDateText,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
 
                 Button(
                     onClick = { onStartNormalMock?.invoke() },
@@ -180,6 +257,6 @@ fun MockTestHomeScreen(
                 }
             }
         }
-        
+
     }
 }

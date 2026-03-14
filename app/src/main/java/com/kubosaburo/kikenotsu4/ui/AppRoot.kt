@@ -609,15 +609,6 @@ fun AppRoot() {
                 }
                 MockTestHomeScreen(
                     contentPadding = innerPadding,
-                    onBack = {
-                        proManager.refresh()
-                        showMockTestHome = false
-                        showMockTestSession = false
-                        forceShowHomeRoot = false
-                        selectedTab = BottomTab.HOME
-                        homeMode = HomeMode.MENU
-                        freeStudyMode = FreeStudyMode.HOME
-                    },
                     onStartTrial = {
                         proManager.refresh()
                         selectedTextId = null
