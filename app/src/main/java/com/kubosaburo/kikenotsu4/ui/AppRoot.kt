@@ -9,7 +9,6 @@ import android.content.Context
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -31,7 +30,6 @@ import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -54,6 +52,7 @@ import com.kubosaburo.kikenotsu4.data.TextItem
 import com.kubosaburo.kikenotsu4.data.CurriculumRoot
 import com.kubosaburo.kikenotsu4.data.CurriculumProgressStore
 import com.kubosaburo.kikenotsu4.data.CurriculumSection
+import com.kubosaburo.kikenotsu4.data.ProManager
 import com.kubosaburo.kikenotsu4.ui.screens.BookmarkScreen
 import com.kubosaburo.kikenotsu4.ui.screens.FreeStudyHomeScreen
 import com.kubosaburo.kikenotsu4.ui.screens.HomeMenuScreen
@@ -67,6 +66,8 @@ import com.kubosaburo.kikenotsu4.ui.screens.CurriculumHomeScreen
 import com.kubosaburo.kikenotsu4.ui.screens.ReviewIntroScreen
 import com.kubosaburo.kikenotsu4.ui.screens.FinalCelebrationScreen
 import com.kubosaburo.kikenotsu4.ui.screens.SettingsScreen as RealSettingsScreen
+import com.kubosaburo.kikenotsu4.ui.screens.MockTestHomeScreen
+import com.kubosaburo.kikenotsu4.ui.screens.MockTestSessionScreen
 
 private enum class BottomTab { HOME, PROGRESS, SETTINGS }
 private enum class HomeMode { MENU, FREE_STUDY, CURRICULUM, MOCK }
@@ -77,6 +78,7 @@ fun AppRoot() {
     val context = LocalContext.current
     val quizLogStore = remember { QuizLogStore(context) }
     val bookmarkStore = remember { BookmarkStore(context) }
+    val proManager = remember { ProManager(context) }
 
     var bookmarkedTextIds by rememberSaveable { mutableStateOf<Set<String>>(emptySet()) }
 
@@ -114,6 +116,8 @@ fun AppRoot() {
     var isFreeStudyTodayReview by rememberSaveable { mutableStateOf(false) }
     var showNoTodayReviewDialog by rememberSaveable { mutableStateOf(false) }
     var curriculumTextOpenedFromResume by rememberSaveable { mutableStateOf(false) }
+    var showMockTestSession by rememberSaveable { mutableStateOf(false) }
+    var showMockTestHome by rememberSaveable { mutableStateOf(false) }
 
     fun fetchDueReviewIds(context: Context, maxCount: Int = 10): List<String> {
         // ReviewStore (QuizLogStore.kt) stores:
@@ -182,6 +186,8 @@ fun AppRoot() {
 
         showFinalCelebration = false
         curriculumTextOpenedFromResume = false
+        showMockTestSession = false
+        showMockTestHome = false
     }
 
 
@@ -193,9 +199,8 @@ fun AppRoot() {
 
             curriculumNextSectionId = CurriculumProgressStore.loadNextSectionId(context)
 
-
-
             bookmarkedTextIds = bookmarkStore.loadBookmarkedTextIds().toSet()
+            proManager.refresh()
         }.onFailure {
             error = it.message ?: it.toString()
         }
@@ -572,6 +577,100 @@ fun AppRoot() {
                     }
                 )
             }
+            selectedTab == BottomTab.SETTINGS -> {
+                RealSettingsScreen(contentPadding = innerPadding)
+            }
+            showMockTestSession -> {
+                LaunchedEffect(Unit) {
+                    proManager.refresh()
+                }
+                MockTestSessionScreen(
+                    contentPadding = innerPadding,
+                    onBack = {
+                        proManager.refresh()
+                        showMockTestSession = false
+                        showMockTestHome = true
+                        forceShowHomeRoot = false
+                        selectedTab = BottomTab.HOME
+                        homeMode = HomeMode.MOCK
+                        freeStudyMode = FreeStudyMode.HOME
+                        selectedTextId = null
+                        quizTextId = null
+                        quizQuestionIds = emptyList()
+                        celebrationMessage = null
+                        celebrationTextId = null
+                    },
+                    isPro = proManager.isProEnabled
+                )
+            }
+            showMockTestHome -> {
+                LaunchedEffect(Unit) {
+                    proManager.refresh()
+                }
+                MockTestHomeScreen(
+                    contentPadding = innerPadding,
+                    onBack = {
+                        proManager.refresh()
+                        showMockTestHome = false
+                        showMockTestSession = false
+                        forceShowHomeRoot = false
+                        selectedTab = BottomTab.HOME
+                        homeMode = HomeMode.MENU
+                        freeStudyMode = FreeStudyMode.HOME
+                    },
+                    onStartTrial = {
+                        proManager.refresh()
+                        selectedTextId = null
+                        quizTextId = null
+                        quizQuestionIds = emptyList()
+                        celebrationMessage = null
+                        celebrationTextId = null
+                        celebrationIsCurriculum = false
+                        showReviewIntro = false
+                        reviewIntroIds = emptyList()
+                        activeReviewIds = emptyList()
+                        isFreeStudyTodayReview = false
+                        showNoTodayReviewDialog = false
+                        isAutoReview = false
+                        autoReviewFinished = false
+                        showFinalCelebration = false
+                        forceShowHomeRoot = false
+                        curriculumError = null
+
+                        selectedTab = BottomTab.HOME
+                        homeMode = HomeMode.MOCK
+                        freeStudyMode = FreeStudyMode.HOME
+                        showMockTestHome = false
+                        showMockTestSession = true
+                    },
+                    onStartNormalMock = {
+                        proManager.refresh()
+                        selectedTextId = null
+                        quizTextId = null
+                        quizQuestionIds = emptyList()
+                        celebrationMessage = null
+                        celebrationTextId = null
+                        celebrationIsCurriculum = false
+                        showReviewIntro = false
+                        reviewIntroIds = emptyList()
+                        activeReviewIds = emptyList()
+                        isFreeStudyTodayReview = false
+                        showNoTodayReviewDialog = false
+                        isAutoReview = false
+                        autoReviewFinished = false
+                        showFinalCelebration = false
+                        forceShowHomeRoot = false
+                        curriculumError = null
+
+                        selectedTab = BottomTab.HOME
+                        homeMode = HomeMode.MOCK
+                        freeStudyMode = FreeStudyMode.HOME
+                        showMockTestHome = false
+                        showMockTestSession = true
+                    },
+                    isPro = proManager.isProEnabled
+                )
+            }
             forceShowHomeRoot -> {
                 HomeMenuScreen(
                     contentPadding = innerPadding,
@@ -585,8 +684,13 @@ fun AppRoot() {
                         freeStudyMode = FreeStudyMode.HOME
                     },
                     onGoMock = {
+                        proManager.refresh()
+                        showMockTestSession = false
+                        showMockTestHome = true
                         forceShowHomeRoot = false
+                        selectedTab = BottomTab.HOME
                         homeMode = HomeMode.MOCK
+                        freeStudyMode = FreeStudyMode.HOME
                     }
                 )
             }
@@ -597,9 +701,6 @@ fun AppRoot() {
                 )
             }
 
-            selectedTab == BottomTab.SETTINGS -> {
-                RealSettingsScreen(contentPadding = innerPadding)
-            }
 
             error != null -> {
                 Text("読み込みに失敗しました: $error")
@@ -749,31 +850,24 @@ fun AppRoot() {
                     onShowCelebration = { total, correct, _ ->
                         // ✅ capture state at the exact moment the quiz finishes
                         val curHomeMode = homeMode
-                        val curTab = selectedTab
                         val curSection = curriculumCurrentSectionId
-                        val curNext = curriculumNextSectionId
 
                         // homeMode は Quiz 表示中でも他導線で変化しうるので、進捗ストアの状態も併用して判定
                         val isCurriculumNow = (curHomeMode == HomeMode.CURRICULUM) || (curSection != null)
-
 
                         if (isCurriculumNow) {
                             if (isAutoReview) {
                                 // ✅ Auto-review finished: do NOT advance curriculum pointers here.
                                 celebrationIsCurriculum = true
                                 autoReviewFinished = true
-
                             } else {
                                 // ✅ curriculum: advance to next section (usually the next text)
                                 advanceCurriculumFromCurrentSection()
                                 celebrationIsCurriculum = true
-
                                 // 念のため、タブ/モードもカリキュラムに寄せておく（戻り先が一覧になる事故を防ぐ）
                                 selectedTab = BottomTab.HOME
                                 homeMode = HomeMode.CURRICULUM
                                 freeStudyMode = FreeStudyMode.HOME
-
-
                             }
                         } else {
                             celebrationIsCurriculum = false
@@ -844,9 +938,7 @@ fun AppRoot() {
                             // 通常クイズ（カリキュラムの quiz セクションなど）で
                             // questionIds 経由の完了時も、最後は祝画面へ進める。
                             val curHomeMode = homeMode
-                            val curTab = selectedTab
                             val curSection = curriculumCurrentSectionId
-                            val curNext = curriculumNextSectionId
                             val isCurriculumNow = (curHomeMode == HomeMode.CURRICULUM) || (curSection != null)
 
                             if (isCurriculumNow) {
@@ -1015,12 +1107,6 @@ fun AppRoot() {
                 }
             }
 
-            homeMode == HomeMode.MOCK -> {
-                PlaceholderModeScreen(
-                    contentPadding = innerPadding,
-                    onBack = { homeMode = HomeMode.MENU }
-                )
-            }
 
             else -> {
                 HomeMenuScreen(
@@ -1032,25 +1118,18 @@ fun AppRoot() {
                         homeMode = HomeMode.FREE_STUDY
                         freeStudyMode = FreeStudyMode.HOME
                     },
-                    onGoMock = { homeMode = HomeMode.MOCK }
+                    onGoMock = {
+                        proManager.refresh()
+                        showMockTestSession = false
+                        showMockTestHome = true
+                        forceShowHomeRoot = false
+                        selectedTab = BottomTab.HOME
+                        homeMode = HomeMode.MOCK
+                        freeStudyMode = FreeStudyMode.HOME
+                    }
                 )
             }
         }
     }
 }
-@Composable
-private fun PlaceholderModeScreen(
-    contentPadding: PaddingValues,
-    onBack: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(contentPadding)
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text("模擬テストで学ぶ（準備中）")
-        Button(onClick = onBack) { Text("戻る") }
-    }
-}
+

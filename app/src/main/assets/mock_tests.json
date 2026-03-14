@@ -1,0 +1,38 @@
+{
+    "version": 2,
+    "mock_tests": [
+        {
+            "id": "mock_trial_fixed",
+            "title": "お試し模試（固定）",
+            "description": "まずは1回分を固定問題で体験（全範囲からバランス抽出／60分／35問）",
+            "time_limit": 60,
+            "mode": "fixed",
+            "question_ids": [
+                "q0005","q0015","q0030","q0045","q0060",
+                "q0075","q0090","q0105","q0120","q0135",
+                "q0150","q0165","q0180","q0195","q0210",
+                "q0230","q0250","q0270","q0290","q0310",
+                "q0330","q0350","q0370","q0390","q0410",
+                "q0435","q0439","q0443","q0447","q0451",
+                "q0455","q0459","q0463","q0467","q0469"
+            ],
+            "sections": [
+                { "title": "法令", "count": 15, "range": { "start": "q0001", "end": "q0228" } },
+                { "title": "物理化学", "count": 10, "range": { "start": "q0229", "end": "q0434" } },
+                { "title": "性質・消火", "count": 10, "range": { "start": "q0435", "end": "q0469" } }
+            ]
+        },
+        {
+            "id": "mock_random",
+            "title": "ランダム模試（毎回生成）",
+            "description": "法令15・物理化学10・性質/消火10を毎回ランダム抽出（60分／35問）",
+            "time_limit": 60,
+            "mode": "random",
+            "sections": [
+                { "title": "法令", "count": 15, "range": { "start": "q0001", "end": "q0228" } },
+                { "title": "物理化学", "count": 10, "range": { "start": "q0229", "end": "q0434" } },
+                { "title": "性質・消火", "count": 10, "range": { "start": "q0435", "end": "q0469" } }
+            ]
+        }
+    ]
+}
