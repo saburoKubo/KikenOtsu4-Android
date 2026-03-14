@@ -223,6 +223,24 @@ fun AppRoot() {
         return formatter.format(Date(result.finishedAtMillis))
     }
 
+    fun flattenedCurriculumSections(): List<CurriculumSection> {
+        return curriculum?.chapters?.flatMap { it.sections } ?: emptyList()
+    }
+
+    fun totalSectionCount(): Int {
+        return flattenedCurriculumSections().size
+    }
+
+    fun completedSectionCount(): Int {
+        val allSections = flattenedCurriculumSections()
+        if (allSections.isEmpty()) return 0
+
+        val nextId = curriculumNextSectionId ?: return allSections.size
+
+        val nextIndex = allSections.indexOfFirst { it.id == nextId }
+        return if (nextIndex >= 0) nextIndex else 0
+    }
+
     fun findCurriculumSection(sectionId: String): CurriculumSection? {
         val root = curriculum ?: return null
         for (ch in root.chapters) {
@@ -282,8 +300,7 @@ fun AppRoot() {
     fun openSavedCurriculumOrHome() {
         curriculumError = null
 
-        val nextId = curriculumNextSectionId
-        if (nextId == null) {
+        val nextId = curriculumNextSectionId ?: run {
             homeMode = HomeMode.CURRICULUM
             freeStudyMode = FreeStudyMode.HOME
             return
@@ -595,6 +612,14 @@ fun AppRoot() {
             selectedTab == BottomTab.SETTINGS -> {
                 RealSettingsScreen(contentPadding = innerPadding)
             }
+            selectedTab == BottomTab.PROGRESS -> {
+                ProgressScreen(
+                    quizLogStore = quizLogStore,
+                    completedSectionCount = completedSectionCount(),
+                    totalSectionCount = totalSectionCount(),
+                    contentPadding = innerPadding,
+                )
+            }
             showMockTestSession -> {
                 LaunchedEffect(Unit) {
                     proManager.refresh()
@@ -710,12 +735,6 @@ fun AppRoot() {
                         homeMode = HomeMode.MOCK
                         freeStudyMode = FreeStudyMode.HOME
                     }
-                )
-            }
-            selectedTab == BottomTab.PROGRESS -> {
-                ProgressScreen(
-                    quizLogStore = quizLogStore,
-                    onBack = { selectedTab = BottomTab.HOME }
                 )
             }
 
