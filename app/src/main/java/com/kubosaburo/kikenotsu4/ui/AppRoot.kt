@@ -71,6 +71,10 @@ import com.kubosaburo.kikenotsu4.ui.screens.FinalCelebrationScreen
 import com.kubosaburo.kikenotsu4.ui.screens.SettingsScreen as RealSettingsScreen
 import com.kubosaburo.kikenotsu4.ui.screens.MockTestHomeScreen
 import com.kubosaburo.kikenotsu4.ui.screens.MockTestSessionScreen
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.interstitial.InterstitialAd
+import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 
 private enum class BottomTab { HOME, PROGRESS, SETTINGS }
 private enum class HomeMode { MENU, FREE_STUDY, CURRICULUM, MOCK }
@@ -122,7 +126,11 @@ fun AppRoot() {
     var showMockTestSession by rememberSaveable { mutableStateOf(false) }
     var showMockTestHome by rememberSaveable { mutableStateOf(false) }
 
-    fun fetchDueReviewIds(context: Context, maxCount: Int = 10): List<String> {
+    // セクション完了後に表示するインタースティシャル広告
+    var sectionInterstitialAd by remember { mutableStateOf<InterstitialAd?>(null) }
+    var isLoadingSectionInterstitial by remember { mutableStateOf(false) }
+
+    fun fetchDueReviewIds(context: Context, maxCount: Int = Int.MAX_VALUE): List<String> {
         // ReviewStore (QuizLogStore.kt) stores:
         // key: "q_<questionId>"
         // value: "ease|intervalDays|repetition|nextReviewAt|lastReviewedAt"
@@ -251,6 +259,33 @@ fun AppRoot() {
         return null
     }
 
+    fun loadSectionInterstitialIfNeeded() {
+        if (sectionInterstitialAd != null || isLoadingSectionInterstitial) return
+
+        isLoadingSectionInterstitial = true
+        val adRequest = AdRequest.Builder().build()
+
+        // テスト用インタースティシャル広告ユニットID（本番前にご自身のIDへ差し替え）
+        val adUnitId = "ca-app-pub-3940256099942544/1033173712"
+
+        InterstitialAd.load(
+            context,
+            adUnitId,
+            adRequest,
+            object : InterstitialAdLoadCallback() {
+                override fun onAdLoaded(ad: InterstitialAd) {
+                    sectionInterstitialAd = ad
+                    isLoadingSectionInterstitial = false
+                }
+
+                override fun onAdFailedToLoad(adError: LoadAdError) {
+                    sectionInterstitialAd = null
+                    isLoadingSectionInterstitial = false
+                }
+            }
+        )
+    }
+
     fun openCurriculumSection(sectionId: String, sectionType: String, refId: String) {
         curriculumError = null
         curriculumNextSectionId = sectionId
@@ -306,7 +341,7 @@ fun AppRoot() {
             return
         }
 
-        val dueIds = fetchDueReviewIds(context, maxCount = 10)
+        val dueIds = fetchDueReviewIds(context)
         if (dueIds.isNotEmpty()) {
             isFreeStudyTodayReview = false
             showReviewIntro = true
@@ -443,7 +478,7 @@ fun AppRoot() {
                                         quizQuestionIds = emptyList()
 
                                         val ids = activeReviewIds.ifEmpty {
-                                            fetchDueReviewIds(context, maxCount = 10)
+                                            fetchDueReviewIds(context)
                                         }
 
                                         reviewIntroIds = ids
@@ -795,6 +830,10 @@ fun AppRoot() {
 
             celebrationMessage != null && celebrationTextId != null -> {
                 val msg = celebrationMessage!!
+                // 次のセクションに進むタイミングでインタースティシャル広告を出したいので、事前にロードしておく
+                LaunchedEffect(Unit) {
+                    loadSectionInterstitialIfNeeded()
+                }
                 SectionCelebrationScreen(
                     message = msg,
                     isCurriculum = celebrationIsCurriculum,
@@ -807,30 +846,21 @@ fun AppRoot() {
                         celebrationTextId = null
                         curriculumError = null
 
-                        if (celebrationIsCurriculum) {
-                            // ✅ If we just finished an auto-review, resume curriculum without chaining more auto-reviews immediately.
-                            if (autoReviewFinished) {
-                                autoReviewFinished = false
-                                isAutoReview = false
-                                reviewIntroIds = emptyList()
-                                showReviewIntro = false
-                            } else {
-                                // ✅ Curriculum Auto Review: show intro first if any due items exist.
-                                val dueIds = fetchDueReviewIds(context, maxCount = 10)
-                                if (dueIds.isNotEmpty()) {
-                                    showReviewIntro = true
-                                    reviewIntroIds = dueIds
-
-                                    // ensure we stay in curriculum flow
-                                    selectedTab = BottomTab.HOME
-                                    homeMode = HomeMode.CURRICULUM
-                                    freeStudyMode = FreeStudyMode.HOME
-
-                                    celebrationIsCurriculum = false
-                                    return@SectionCelebrationScreen
-                                }
+                        // まず広告を表示（ロード済みなら）
+                        sectionInterstitialAd?.let { ad ->
+                            (context as? android.app.Activity)?.let { activity ->
+                                ad.show(activity)
                             }
+                            sectionInterstitialAd = null
+                        }
 
+                        if (celebrationIsCurriculum) {
+                            // ✅ セクション完了後は、そのまま次のセクションへ進む。
+                            // 追加の復習は「カリキュラムで進む」を押したときの一度きりにする。
+                            autoReviewFinished = false
+                            isAutoReview = false
+                            reviewIntroIds = emptyList()
+                            showReviewIntro = false
                             // ✅ Curriculum: open the next section immediately (no list)
                             celebrationIsCurriculum = false
                             selectedTab = BottomTab.HOME
@@ -1039,7 +1069,7 @@ fun AppRoot() {
                             onTextQuiz = { freeStudyMode = FreeStudyMode.TEXT_LIST },
                             onBookmarks = { freeStudyMode = FreeStudyMode.BOOKMARKS },
                             onTodayReview = {
-                                val dueIds = fetchDueReviewIds(context, maxCount = 10)
+                                val dueIds = fetchDueReviewIds(context)
                                 if (dueIds.isNotEmpty()) {
                                     isFreeStudyTodayReview = true
                                     showReviewIntro = true

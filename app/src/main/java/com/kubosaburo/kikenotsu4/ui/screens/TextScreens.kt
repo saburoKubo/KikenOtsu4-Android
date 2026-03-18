@@ -48,6 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -55,6 +56,9 @@ import com.kubosaburo.kikenotsu4.R
 import com.kubosaburo.kikenotsu4.data.TextItem
 import com.kubosaburo.kikenotsu4.ui.components.CharacterSpeechBubbleView
 import com.kubosaburo.kikenotsu4.ui.parseBoldMarkdown
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
 
 @Composable
 fun TextListScreen(
@@ -363,6 +367,28 @@ fun TextDetailScreen(
                         }
                     }
                 }
+            }
+        }
+
+        // テキスト詳細画面の下部バナー広告
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                AndroidView(
+                    modifier = Modifier.fillMaxWidth(),
+                    factory = { context ->
+                        AdView(context).apply {
+                            // テスト用バナー広告ユニットID（本番前にご自身のIDへ差し替え）
+                            adUnitId = "ca-app-pub-3940256099942544/6300978111"
+                            setAdSize(AdSize.BANNER)
+                            loadAd(AdRequest.Builder().build())
+                        }
+                    }
+                )
             }
         }
 

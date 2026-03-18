@@ -52,6 +52,9 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
 
+    // Google Mobile Ads (AdMob)
+    implementation("com.google.android.gms:play-services-ads:23.3.0")
+
     // Material Icons (extended) for MenuBook / School / Assignment etc.
     implementation("androidx.compose.material:material-icons-extended")
 

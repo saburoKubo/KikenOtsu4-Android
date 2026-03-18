@@ -30,9 +30,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import com.kubosaburo.kikenotsu4.R
 import com.kubosaburo.kikenotsu4.data.StartingPraiseProvider
 import com.kubosaburo.kikenotsu4.ui.components.CharacterSpeechBubbleView
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
 
 @Composable
 fun HomeMenuScreen(
@@ -93,6 +97,27 @@ fun HomeMenuScreen(
         )
 
         Spacer(modifier = Modifier.size(6.dp))
+
+        // ホーム画面下部のバナー広告（領域が分かるように背景付き）
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
+                .padding(vertical = 4.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            AndroidView(
+                modifier = Modifier.fillMaxWidth(),
+                factory = { context ->
+                    AdView(context).apply {
+                        // テスト用バナー広告ユニットID（本番前にご自身のIDへ差し替え）
+                        adUnitId = "ca-app-pub-3940256099942544/6300978111"
+                        setAdSize(AdSize.BANNER)
+                        loadAd(AdRequest.Builder().build())
+                    }
+                }
+            )
+        }
     }
 }
 

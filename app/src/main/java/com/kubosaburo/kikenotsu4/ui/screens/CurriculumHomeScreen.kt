@@ -27,9 +27,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import com.kubosaburo.kikenotsu4.R
 import com.kubosaburo.kikenotsu4.data.CurriculumChapter
 import com.kubosaburo.kikenotsu4.ui.components.CharacterSpeechBubbleView
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
 
 @Composable
 fun CurriculumHomeScreen(
@@ -96,6 +100,18 @@ fun CurriculumHomeScreen(
         }
 
         item { Spacer(Modifier.height(20.dp)) }
+
+        // 画面下部のバナー広告
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                AdMobBanner()
+            }
+        }
     }
 }
 
@@ -147,5 +163,20 @@ private fun ChapterCard(
             }
         }
     }
+}
+
+@Composable
+private fun AdMobBanner(modifier: Modifier = Modifier) {
+    AndroidView(
+        modifier = modifier.fillMaxWidth(),
+        factory = { context ->
+            AdView(context).apply {
+                // テスト用バナー広告ユニットID（本番前に自分のIDへ差し替え）
+                adUnitId = "ca-app-pub-3940256099942544/6300978111"
+                setAdSize(AdSize.BANNER)
+                loadAd(AdRequest.Builder().build())
+            }
+        }
+    )
 }
 
