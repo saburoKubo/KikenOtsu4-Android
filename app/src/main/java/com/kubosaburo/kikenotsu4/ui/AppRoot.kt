@@ -752,6 +752,9 @@ fun AppRoot() {
             forceShowHomeRoot -> {
                 HomeMenuScreen(
                     contentPadding = innerPadding,
+                    totalSections = totalSectionCount().takeIf { it > 0 },
+                    completedSections = completedSectionCount(),
+                    todayReviewCount = fetchDueReviewIds(context).size,
                     onGoCurriculum = {
                         forceShowHomeRoot = false
                         openSavedCurriculumOrHome()
@@ -997,7 +1000,21 @@ fun AppRoot() {
                                         curriculumCurrentSectionId = null
                                         homeMode = HomeMode.MENU
                                     } else {
-                                        openCurriculumSection(nextSec.id, nextSec.type, nextSec.refId)
+                                        // 復習終了後は、問題セクションで中断していた場合でもテキスト画面に戻したい。
+                                        if (nextSec.type == "quiz") {
+                                            // quiz セクションの refId は groupId なので、そこから対応する textId を引いてテキスト画面を開く
+                                            val qForGroup = questions.filter { it.groupId == nextSec.refId }
+                                            val firstQ = qForGroup.firstOrNull()
+                                            if (firstQ != null) {
+                                                curriculumCurrentSectionId = nextSec.id
+                                                selectedTextId = firstQ.textId
+                                            } else {
+                                                // 安全側: 通常の挙動にフォールバック
+                                                openCurriculumSection(nextSec.id, nextSec.type, nextSec.refId)
+                                            }
+                                        } else {
+                                            openCurriculumSection(nextSec.id, nextSec.type, nextSec.refId)
+                                        }
                                     }
                                 }
                             }
@@ -1178,6 +1195,9 @@ fun AppRoot() {
             else -> {
                 HomeMenuScreen(
                     contentPadding = innerPadding,
+                    totalSections = totalSectionCount().takeIf { it > 0 },
+                    completedSections = completedSectionCount(),
+                    todayReviewCount = fetchDueReviewIds(context).size,
                     onGoCurriculum = {
                         openSavedCurriculumOrHome()
                     },
