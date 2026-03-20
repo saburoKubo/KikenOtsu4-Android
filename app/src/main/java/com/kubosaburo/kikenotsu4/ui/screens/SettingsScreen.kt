@@ -52,6 +52,7 @@ import java.util.Locale
 @Composable
 fun SettingsScreen(
     contentPadding: PaddingValues,
+    onProModeChanged: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
 
@@ -103,6 +104,7 @@ fun SettingsScreen(
                 onChange = { newMode ->
                     proDebugOverride = newMode
                     DebugProMode.save(context, newMode)
+                    onProModeChanged?.invoke()
                 }
             )
             DebugFinalCelebrationTestCard(

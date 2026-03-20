@@ -56,6 +56,7 @@ import com.kubosaburo.kikenotsu4.data.CurriculumRoot
 import com.kubosaburo.kikenotsu4.data.CurriculumProgressStore
 import com.kubosaburo.kikenotsu4.data.CurriculumSection
 import com.kubosaburo.kikenotsu4.data.ProManager
+import com.kubosaburo.kikenotsu4.data.DailyTextLimitStore
 import com.kubosaburo.kikenotsu4.ui.screens.BookmarkScreen
 import com.kubosaburo.kikenotsu4.ui.screens.FreeStudyHomeScreen
 import com.kubosaburo.kikenotsu4.ui.screens.HomeMenuScreen
@@ -67,6 +68,7 @@ import com.kubosaburo.kikenotsu4.ui.screens.TextListScreen
 import com.kubosaburo.kikenotsu4.ui.screens.SearchScreen
 import com.kubosaburo.kikenotsu4.ui.screens.CurriculumHomeScreen
 import com.kubosaburo.kikenotsu4.ui.screens.ReviewIntroScreen
+import com.kubosaburo.kikenotsu4.ui.screens.ReviewCompletionScreen
 import com.kubosaburo.kikenotsu4.ui.screens.FinalCelebrationScreen
 import com.kubosaburo.kikenotsu4.ui.screens.SettingsScreen as RealSettingsScreen
 import com.kubosaburo.kikenotsu4.ui.screens.MockTestHomeScreen
@@ -86,6 +88,8 @@ fun AppRoot() {
     val quizLogStore = remember { QuizLogStore(context) }
     val bookmarkStore = remember { BookmarkStore(context) }
     val proManager = remember { ProManager(context) }
+
+    val FREE_DAILY_TEXT_LIMIT = 2
 
     var bookmarkedTextIds by rememberSaveable { mutableStateOf<Set<String>>(emptySet()) }
 
@@ -118,6 +122,7 @@ fun AppRoot() {
     // ✅ Review intro (show before starting auto-review quiz)
     var showReviewIntro by rememberSaveable { mutableStateOf(false) }
     var reviewIntroIds by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
+    var showReviewCompletion by rememberSaveable { mutableStateOf(false) }
 // ✅ 現在の復習セッションID（戻る用に保持）
     var activeReviewIds by rememberSaveable { mutableStateOf<List<String>>(emptyList()) }
     var isFreeStudyTodayReview by rememberSaveable { mutableStateOf(false) }
@@ -129,6 +134,9 @@ fun AppRoot() {
     // セクション完了後に表示するインタースティシャル広告
     var sectionInterstitialAd by remember { mutableStateOf<InterstitialAd?>(null) }
     var isLoadingSectionInterstitial by remember { mutableStateOf(false) }
+
+    // 無料版の「本日の上限に達しました」ダイアログ
+    var showDailyTextLimitDialog by rememberSaveable { mutableStateOf(false) }
 
     fun fetchDueReviewIds(context: Context, maxCount: Int = Int.MAX_VALUE): List<String> {
         // ReviewStore (QuizLogStore.kt) stores:
@@ -187,6 +195,7 @@ fun AppRoot() {
 
         showReviewIntro = false
         reviewIntroIds = emptyList()
+        showReviewCompletion = false
         activeReviewIds = emptyList()
         isFreeStudyTodayReview = false
         showNoTodayReviewDialog = false
@@ -288,9 +297,32 @@ fun AppRoot() {
 
     fun openCurriculumSection(sectionId: String, sectionType: String, refId: String) {
         curriculumError = null
+
+        // 無料版は「テキスト問題（お祝い到達）」が1日2問まで。
+        // その上限を超えるセクション開始はブロックする（ただし今日すでに解いた問題は許可）。
+        if (!proManager.isProEnabled && (sectionType == "text" || sectionType == "quiz")) {
+            val targetTextId: String? = when (sectionType) {
+                "text" -> refId
+                "quiz" -> {
+                    val qForGroup = questions.filter { it.groupId == refId }
+                    qForGroup.firstOrNull()?.textId
+                }
+                else -> null
+            }
+
+            if (targetTextId != null &&
+                DailyTextLimitStore.isLimitReached(context, FREE_DAILY_TEXT_LIMIT) &&
+                !DailyTextLimitStore.hasCompletedText(context, targetTextId)
+            ) {
+                showDailyTextLimitDialog = true
+                return
+            }
+        }
+
         curriculumNextSectionId = sectionId
         CurriculumProgressStore.saveNextSectionId(context, sectionId)
         curriculumCurrentSectionId = sectionId
+
         when (sectionType) {
             "text" -> {
                 // refId is textId like "text_001"
@@ -367,6 +399,19 @@ fun AppRoot() {
         homeMode = HomeMode.CURRICULUM
         freeStudyMode = FreeStudyMode.HOME
         curriculumTextOpenedFromResume = true
+
+        // ホームから「カリキュラムで学ぶ」に入るときは、quiz セクション保存中でも
+        // いきなり問題画面へ飛ばさず、対応するテキスト画面から再開する。
+        if (sec.type == "quiz") {
+            val qForGroup = questions.filter { it.groupId == sec.refId }
+            val firstQ = qForGroup.firstOrNull()
+            if (firstQ != null) {
+                curriculumCurrentSectionId = sec.id
+                selectedTextId = firstQ.textId
+                return
+            }
+        }
+
         openCurriculumSection(sec.id, sec.type, sec.refId)
     }
 
@@ -629,6 +674,42 @@ fun AppRoot() {
             }
         }
     ) { innerPadding ->
+        if (showDailyTextLimitDialog) {
+            AlertDialog(
+                onDismissRequest = { showDailyTextLimitDialog = false },
+                title = {
+                    Text(
+                        text = "本日の上限に達しました",
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                text = {
+                    Text(
+                        text = "無料版ではテキスト問題が1日2問までです。続けるには有料版が必要です。",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = { showDailyTextLimitDialog = false }) {
+                        Text("OK")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            showDailyTextLimitDialog = false
+                            selectedTab = BottomTab.SETTINGS
+                            forceShowHomeRoot = false
+                            homeMode = HomeMode.MENU
+                            freeStudyMode = FreeStudyMode.HOME
+                        }
+                    ) {
+                        Text("有料版にする")
+                    }
+                }
+            )
+        }
+
         when {
             showFinalCelebration -> {
                 LaunchedEffect(Unit) {
@@ -645,7 +726,12 @@ fun AppRoot() {
                 )
             }
             selectedTab == BottomTab.SETTINGS -> {
-                RealSettingsScreen(contentPadding = innerPadding)
+                RealSettingsScreen(
+                    contentPadding = innerPadding,
+                    onProModeChanged = {
+                        proManager.refresh()
+                    }
+                )
             }
             selectedTab == BottomTab.PROGRESS -> {
                 ProgressScreen(
@@ -831,6 +917,49 @@ fun AppRoot() {
                 )
             }
 
+            showReviewCompletion -> {
+                ReviewCompletionScreen(
+                    contentPadding = innerPadding,
+                    onContinue = {
+                        showReviewCompletion = false
+                        selectedTab = BottomTab.HOME
+                        homeMode = HomeMode.CURRICULUM
+                        freeStudyMode = FreeStudyMode.HOME
+
+                        val nextId = curriculumNextSectionId
+                        if (nextId == null) {
+                            CurriculumProgressStore.clear(context)
+                            curriculumNextSectionId = null
+                            curriculumCurrentSectionId = null
+                            showFinalCelebration = true
+                        } else {
+                            val nextSec = findCurriculumSection(nextId)
+                            if (nextSec == null) {
+                                curriculumError = "続きのセクションが見つかりません: $nextId"
+                                CurriculumProgressStore.clear(context)
+                                curriculumNextSectionId = null
+                                curriculumCurrentSectionId = null
+                                homeMode = HomeMode.MENU
+                            } else {
+                                // 復習終了後は、問題セクションで中断していた場合でもテキスト画面に戻す
+                                if (nextSec.type == "quiz") {
+                                    val qForGroup = questions.filter { it.groupId == nextSec.refId }
+                                    val firstQ = qForGroup.firstOrNull()
+                                    if (firstQ != null) {
+                                        curriculumCurrentSectionId = nextSec.id
+                                        selectedTextId = firstQ.textId
+                                    } else {
+                                        openCurriculumSection(nextSec.id, nextSec.type, nextSec.refId)
+                                    }
+                                } else {
+                                    openCurriculumSection(nextSec.id, nextSec.type, nextSec.refId)
+                                }
+                            }
+                        }
+                    }
+                )
+            }
+
             celebrationMessage != null && celebrationTextId != null -> {
                 val msg = celebrationMessage!!
                 // 次のセクションに進むタイミングでインタースティシャル広告を出したいので、事前にロードしておく
@@ -841,6 +970,29 @@ fun AppRoot() {
                     message = msg,
                     isCurriculum = celebrationIsCurriculum,
                     onTapNext = {
+                        // 無料版: 本日のテキスト上限を超える次セクション開始はブロックする
+                        if (celebrationIsCurriculum && !proManager.isProEnabled) {
+                            val nextId = curriculumNextSectionId
+                            val nextSec = nextId?.let { findCurriculumSection(it) }
+
+                            val targetTextId: String? = when (nextSec?.type) {
+                                "text" -> nextSec.refId
+                                "quiz" -> {
+                                    val qForGroup = questions.filter { it.groupId == nextSec.refId }
+                                    qForGroup.firstOrNull()?.textId
+                                }
+                                else -> null
+                            }
+
+                            if (targetTextId != null &&
+                                DailyTextLimitStore.isLimitReached(context, FREE_DAILY_TEXT_LIMIT) &&
+                                !DailyTextLimitStore.hasCompletedText(context, targetTextId)
+                            ) {
+                                showDailyTextLimitDialog = true
+                                return@SectionCelebrationScreen
+                            }
+                        }
+
                         // clear celebration + quiz UI state
                         selectedTextId = null
                         quizTextId = null
@@ -951,6 +1103,12 @@ fun AppRoot() {
                             "おつかれさま！よく頑張ったね！🎉"
                         }
 
+                        // 無料版の「本日の上限」カウント対象（テキスト問題のみ）
+                        // 復習（auto-review）ではカウントしない。
+                        if (!isAutoReview) {
+                            DailyTextLimitStore.markCompletedText(context, tid)
+                        }
+
                         // close quiz
                         quizTextId = null
                         quizQuestionIds = emptyList()
@@ -972,7 +1130,7 @@ fun AppRoot() {
                                 freeStudyMode = FreeStudyMode.HOME
                             } else {
                                 // 復習10問がすべて終わったら、SectionCelebration を出さずに
-                                // そのままカリキュラムの次セクションへ戻す。
+                                // いったん労い画面を挟んでから次のセクションへ戻す。
                                 quizTextId = null
                                 quizQuestionIds = emptyList()
                                 showReviewIntro = false
@@ -981,42 +1139,7 @@ fun AppRoot() {
                                 isAutoReview = false
                                 autoReviewFinished = false
 
-                                selectedTab = BottomTab.HOME
-                                homeMode = HomeMode.CURRICULUM
-                                freeStudyMode = FreeStudyMode.HOME
-
-                                val nextId = curriculumNextSectionId
-                                if (nextId == null) {
-                                    CurriculumProgressStore.clear(context)
-                                    curriculumNextSectionId = null
-                                    curriculumCurrentSectionId = null
-                                    showFinalCelebration = true
-                                } else {
-                                    val nextSec = findCurriculumSection(nextId)
-                                    if (nextSec == null) {
-                                        curriculumError = "続きのセクションが見つかりません: $nextId"
-                                        CurriculumProgressStore.clear(context)
-                                        curriculumNextSectionId = null
-                                        curriculumCurrentSectionId = null
-                                        homeMode = HomeMode.MENU
-                                    } else {
-                                        // 復習終了後は、問題セクションで中断していた場合でもテキスト画面に戻したい。
-                                        if (nextSec.type == "quiz") {
-                                            // quiz セクションの refId は groupId なので、そこから対応する textId を引いてテキスト画面を開く
-                                            val qForGroup = questions.filter { it.groupId == nextSec.refId }
-                                            val firstQ = qForGroup.firstOrNull()
-                                            if (firstQ != null) {
-                                                curriculumCurrentSectionId = nextSec.id
-                                                selectedTextId = firstQ.textId
-                                            } else {
-                                                // 安全側: 通常の挙動にフォールバック
-                                                openCurriculumSection(nextSec.id, nextSec.type, nextSec.refId)
-                                            }
-                                        } else {
-                                            openCurriculumSection(nextSec.id, nextSec.type, nextSec.refId)
-                                        }
-                                    }
-                                }
+                                showReviewCompletion = true
                             }
                         } else {
                             // 通常クイズ（カリキュラムの quiz セクションなど）で
@@ -1042,6 +1165,9 @@ fun AppRoot() {
                             } else {
                                 "おつかれさま！よく頑張ったね！🎉"
                             }
+
+                            // 通常クイズ完了時も、無料版の上限カウント対象（テキスト問題のみ）。
+                            DailyTextLimitStore.markCompletedText(context, tid)
 
                             quizTextId = null
                             quizQuestionIds = emptyList()
@@ -1072,6 +1198,14 @@ fun AppRoot() {
                         }
 
                         // FreeStudy等：従来通り textId でクイズを開く
+                        if (!proManager.isProEnabled &&
+                            DailyTextLimitStore.isLimitReached(context, FREE_DAILY_TEXT_LIMIT) &&
+                            !DailyTextLimitStore.hasCompletedText(context, tid)
+                        ) {
+                            showDailyTextLimitDialog = true
+                            return@TextDetailScreen
+                        }
+
                         quizQuestionIds = emptyList()
                         quizTextId = tid
                     },
@@ -1131,10 +1265,28 @@ fun AppRoot() {
                                 .fillMaxSize()
                                 .padding(innerPadding)
                         ) {
+                            val isFreeLimitReached =
+                                !proManager.isProEnabled && DailyTextLimitStore.isLimitReached(
+                                    context,
+                                    FREE_DAILY_TEXT_LIMIT
+                                )
+                            val completedTodayTextIds = if (isFreeLimitReached) {
+                                DailyTextLimitStore.getCompletedTextIds(context)
+                            } else {
+                                emptySet()
+                            }
+
                             TextListScreen(
                                 items = texts,
                                 contentPadding = PaddingValues(0.dp),
-                                onOpen = { tid: String -> selectedTextId = tid }
+                                isEnabled = { tid -> !isFreeLimitReached || completedTodayTextIds.contains(tid) },
+                                onOpen = { tid: String ->
+                                    if (isFreeLimitReached && !completedTodayTextIds.contains(tid)) {
+                                        showDailyTextLimitDialog = true
+                                    } else {
+                                        selectedTextId = tid
+                                    }
+                                }
                             )
                         }
                     }

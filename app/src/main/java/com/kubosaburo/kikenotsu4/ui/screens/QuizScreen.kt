@@ -51,10 +51,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import android.media.MediaPlayer
-import androidx.compose.ui.viewinterop.AndroidView
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.AdView
 
 @Composable
 fun QuizScreen(
@@ -364,28 +360,6 @@ fun QuizScreen(
                             overflow = TextOverflow.Clip
                         )
                     }
-                }
-            }
-
-            // クイズ画面の下部バナー広告
-            item {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    AndroidView(
-                        modifier = Modifier.fillMaxWidth(),
-                        factory = { context ->
-                            AdView(context).apply {
-                                // テスト用バナー広告ユニットID（本番前にご自身のIDへ差し替え）
-                                adUnitId = "ca-app-pub-3940256099942544/6300978111"
-                                setAdSize(AdSize.BANNER)
-                                loadAd(AdRequest.Builder().build())
-                            }
-                        }
-                    )
                 }
             }
 
