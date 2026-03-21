@@ -176,5 +176,10 @@ object MockTestResultStore {
             putString(summaryKey(summary.mockTestId), json.encodeToString(summary))
         }
     }
+
+    /** 全モードの模擬テスト記録を削除 */
+    fun clearAll(context: Context) {
+        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit { clear() }
+    }
 }
 

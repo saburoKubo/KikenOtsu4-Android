@@ -29,8 +29,8 @@ fun ReviewCompletionScreen(
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
         CharacterSpeechBubbleView(
-            characterImage1 = R.drawable.nicosme_nikoji_katakumi1,
-            characterImage2 = R.drawable.nicosme_nicoji_katakumi_left,
+            characterImage1 = R.drawable.nicosme_nicoji_katakumi2,
+            characterImage2 = R.drawable.nicosme_nicoji_katakumi0,
             durationMillis = 2000L,
             text = "復習ぜんぶクリア！この積み重ねが、合格への近道やで！",
             modifier = Modifier.fillMaxWidth(),

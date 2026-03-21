@@ -21,10 +21,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.kubosaburo.kikenotsu4.R
 import com.kubosaburo.kikenotsu4.data.QuizLogStore
+import com.kubosaburo.kikenotsu4.data.LearnStreakStore
 import com.kubosaburo.kikenotsu4.ui.components.CharacterSpeechBubbleView
 import kotlin.math.roundToInt
 import androidx.compose.foundation.layout.Spacer
@@ -37,6 +39,7 @@ fun ProgressScreen(
     totalSectionCount: Int = 0,
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
+    val context = LocalContext.current
     val statsState = remember { mutableStateOf(quizLogStore.getStats()) }
 
     // 画面を開いたタイミングで最新化（超シンプル）
@@ -52,9 +55,7 @@ fun ProgressScreen(
     }
     val overallProgressPercent = (overallProgressValue * 100f).roundToInt()
 
-    val streakDays = remember(stats.totalAnswered) {
-        if (stats.totalAnswered > 0) 1 else 0
-    }
+    val streakDays = LearnStreakStore.getStreakDays(context)
 
     val progressValue = if (stats.totalAnswered == 0) 0f
     else (stats.totalCorrect.toFloat() / stats.totalAnswered.toFloat()).coerceIn(0f, 1f)

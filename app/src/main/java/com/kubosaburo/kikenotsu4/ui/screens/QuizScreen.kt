@@ -50,7 +50,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import android.media.MediaPlayer
+import com.kubosaburo.kikenotsu4.data.LearningEffectSound
 
 @Composable
 fun QuizScreen(
@@ -124,13 +124,7 @@ fun QuizScreen(
     }
 
     fun playSe(resId: Int) {
-        runCatching {
-            val mp = MediaPlayer.create(context, resId)
-            if (mp != null) {
-                mp.setOnCompletionListener { it.release() }
-                mp.start()
-            }
-        }
+        LearningEffectSound.playOneShot(context, resId)
     }
 
     val listState = rememberLazyListState()

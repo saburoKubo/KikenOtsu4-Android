@@ -1,6 +1,7 @@
 package com.kubosaburo.kikenotsu4.ui.screens
 
 import android.media.MediaPlayer
+import com.kubosaburo.kikenotsu4.data.LearningEffectSettings
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalContext
 
@@ -77,8 +78,13 @@ fun FinalCelebrationScreen(
     val context = LocalContext.current
 
     DisposableEffect(Unit) {
+        if (!LearningEffectSettings.isSoundEffectsEnabled(context)) {
+            return@DisposableEffect onDispose { }
+        }
+        val vol = LearningEffectSettings.getVolume01(context)
         val mediaPlayer = MediaPlayer.create(context, R.raw.firework)
         mediaPlayer?.let { player ->
+            player.setVolume(vol, vol)
             player.setOnCompletionListener {
                 it.release()
             }

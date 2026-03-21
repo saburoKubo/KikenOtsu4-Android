@@ -89,7 +89,7 @@ fun AppRoot() {
     val bookmarkStore = remember { BookmarkStore(context) }
     val proManager = remember { ProManager(context) }
 
-    val FREE_DAILY_TEXT_LIMIT = 2
+    val freeDailyTextLimit = 2
 
     var bookmarkedTextIds by rememberSaveable { mutableStateOf<Set<String>>(emptySet()) }
 
@@ -117,7 +117,6 @@ fun AppRoot() {
 
     // ✅ Curriculum Auto Review (SRS)
     var isAutoReview by rememberSaveable { mutableStateOf(false) }
-    var autoReviewFinished by rememberSaveable { mutableStateOf(false) }
 
     // ✅ Review intro (show before starting auto-review quiz)
     var showReviewIntro by rememberSaveable { mutableStateOf(false) }
@@ -200,7 +199,6 @@ fun AppRoot() {
         isFreeStudyTodayReview = false
         showNoTodayReviewDialog = false
         isAutoReview = false
-        autoReviewFinished = false
 
         curriculumError = null
 
@@ -311,7 +309,7 @@ fun AppRoot() {
             }
 
             if (targetTextId != null &&
-                DailyTextLimitStore.isLimitReached(context, FREE_DAILY_TEXT_LIMIT) &&
+                DailyTextLimitStore.isLimitReached(context, freeDailyTextLimit) &&
                 !DailyTextLimitStore.hasCompletedText(context, targetTextId)
             ) {
                 showDailyTextLimitDialog = true
@@ -450,18 +448,14 @@ fun AppRoot() {
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
-                    if (selected != null) {
-                        val (t, sub) = topBarTextProgressParts()
+                    if (selected != null && selectedTab == BottomTab.HOME) {
+                        val (_, sub) = topBarTextProgressParts()
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(t, style = MaterialTheme.typography.titleSmall)
-                            if (sub != null) {
-                                Text(
-                                    sub,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    textAlign = TextAlign.Center
-                                )
-                            }
+                            Text(
+                                sub ?: "-",
+                                style = MaterialTheme.typography.titleSmall,
+                                textAlign = TextAlign.Center
+                            )
                         }
                     } else {
                         val topTitle =
@@ -531,7 +525,6 @@ fun AppRoot() {
 
                                         // 復習モード解除（Introに戻ったので）
                                         isAutoReview = false
-                                        autoReviewFinished = false
                                     } else {
                                         // ✅ 通常クイズ：テキストへ戻る
                                         selectedTextId = tid
@@ -728,8 +721,17 @@ fun AppRoot() {
             selectedTab == BottomTab.SETTINGS -> {
                 RealSettingsScreen(
                     contentPadding = innerPadding,
+                    isProEnabled = proManager.isProEnabled,
+                    isProBusy = proManager.isBusy,
+                    proErrorMessage = proManager.lastErrorMessage,
+                    onProPurchase = { proManager.purchase() },
+                    onProRestore = { proManager.restore() },
                     onProModeChanged = {
                         proManager.refresh()
+                    },
+                    onLearningDataCleared = {
+                        curriculumNextSectionId = CurriculumProgressStore.loadNextSectionId(context)
+                        bookmarkedTextIds = bookmarkStore.loadBookmarkedTextIds().toSet()
                     }
                 )
             }
@@ -792,7 +794,6 @@ fun AppRoot() {
                         isFreeStudyTodayReview = false
                         showNoTodayReviewDialog = false
                         isAutoReview = false
-                        autoReviewFinished = false
                         showFinalCelebration = false
                         forceShowHomeRoot = false
                         curriculumError = null
@@ -817,7 +818,6 @@ fun AppRoot() {
                         isFreeStudyTodayReview = false
                         showNoTodayReviewDialog = false
                         isAutoReview = false
-                        autoReviewFinished = false
                         showFinalCelebration = false
                         forceShowHomeRoot = false
                         curriculumError = null
@@ -873,7 +873,6 @@ fun AppRoot() {
                     dueCount = reviewIntroIds.size,
                     onStartReview = {
                         isAutoReview = true
-                        autoReviewFinished = false
 
                         val mappedTextId = mapQuestionIdsToTextId(
                             reviewIntroIds,
@@ -905,7 +904,6 @@ fun AppRoot() {
                         reviewIntroIds = emptyList()
                         activeReviewIds = emptyList()
                         isAutoReview = false
-                        autoReviewFinished = false
 
                         if (isFreeStudyTodayReview) {
                             isFreeStudyTodayReview = false
@@ -985,7 +983,7 @@ fun AppRoot() {
                             }
 
                             if (targetTextId != null &&
-                                DailyTextLimitStore.isLimitReached(context, FREE_DAILY_TEXT_LIMIT) &&
+                                DailyTextLimitStore.isLimitReached(context, freeDailyTextLimit) &&
                                 !DailyTextLimitStore.hasCompletedText(context, targetTextId)
                             ) {
                                 showDailyTextLimitDialog = true
@@ -1012,7 +1010,6 @@ fun AppRoot() {
                         if (celebrationIsCurriculum) {
                             // ✅ セクション完了後は、そのまま次のセクションへ進む。
                             // 追加の復習は「カリキュラムで進む」を押したときの一度きりにする。
-                            autoReviewFinished = false
                             isAutoReview = false
                             reviewIntroIds = emptyList()
                             showReviewIntro = false
@@ -1063,13 +1060,15 @@ fun AppRoot() {
                         quizTextId = null
                         quizQuestionIds = emptyList()
                         isAutoReview = false
-                        autoReviewFinished = false
                     },
                     questionIds = quizQuestionIds.takeIf { it.isNotEmpty() },
                     onAnswerCommitted = { qid, isCorrect ->
                         quizLogStore.recordAnswer(qid, isCorrect)
                     },
                     onShowCelebration = { total, correct, _ ->
+                        // 1日1回だけ「学習した」として streak を更新
+                        com.kubosaburo.kikenotsu4.data.LearnStreakStore.markLearnedToday(context)
+
                         // ✅ capture state at the exact moment the quiz finishes
                         val curHomeMode = homeMode
                         val curSection = curriculumCurrentSectionId
@@ -1081,7 +1080,6 @@ fun AppRoot() {
                             if (isAutoReview) {
                                 // ✅ Auto-review finished: do NOT advance curriculum pointers here.
                                 celebrationIsCurriculum = true
-                                autoReviewFinished = true
                             } else {
                                 // ✅ curriculum: advance to next section (usually the next text)
                                 advanceCurriculumFromCurrentSection()
@@ -1114,6 +1112,9 @@ fun AppRoot() {
                         quizQuestionIds = emptyList()
                     },
                     onFinish = { total, correct, _ ->
+                        // 1日1回だけ「学習した」として streak を更新
+                        com.kubosaburo.kikenotsu4.data.LearnStreakStore.markLearnedToday(context)
+
                         if (isAutoReview) {
                             if (isFreeStudyTodayReview) {
                                 quizTextId = null
@@ -1122,7 +1123,6 @@ fun AppRoot() {
                                 reviewIntroIds = emptyList()
                                 activeReviewIds = emptyList()
                                 isAutoReview = false
-                                autoReviewFinished = false
                                 isFreeStudyTodayReview = false
 
                                 selectedTab = BottomTab.HOME
@@ -1137,7 +1137,6 @@ fun AppRoot() {
                                 reviewIntroIds = emptyList()
                                 activeReviewIds = emptyList()
                                 isAutoReview = false
-                                autoReviewFinished = false
 
                                 showReviewCompletion = true
                             }
@@ -1199,7 +1198,7 @@ fun AppRoot() {
 
                         // FreeStudy等：従来通り textId でクイズを開く
                         if (!proManager.isProEnabled &&
-                            DailyTextLimitStore.isLimitReached(context, FREE_DAILY_TEXT_LIMIT) &&
+                            DailyTextLimitStore.isLimitReached(context, freeDailyTextLimit) &&
                             !DailyTextLimitStore.hasCompletedText(context, tid)
                         ) {
                             showDailyTextLimitDialog = true
@@ -1268,7 +1267,7 @@ fun AppRoot() {
                             val isFreeLimitReached =
                                 !proManager.isProEnabled && DailyTextLimitStore.isLimitReached(
                                     context,
-                                    FREE_DAILY_TEXT_LIMIT
+                                    freeDailyTextLimit
                                 )
                             val completedTodayTextIds = if (isFreeLimitReached) {
                                 DailyTextLimitStore.getCompletedTextIds(context)

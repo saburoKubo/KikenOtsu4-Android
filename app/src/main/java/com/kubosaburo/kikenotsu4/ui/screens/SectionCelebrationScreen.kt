@@ -2,8 +2,6 @@
 
 package com.kubosaburo.kikenotsu4.ui.screens
 
-import android.content.Context
-import android.media.MediaPlayer
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -43,6 +41,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.painterResource
 import com.kubosaburo.kikenotsu4.R
+import com.kubosaburo.kikenotsu4.data.LearningEffectSound
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 
@@ -79,7 +78,7 @@ fun SectionCelebrationScreen(
         hasAppeared = true
 
         // 拍手
-        playOneShot(context, applauseResId)
+        LearningEffectSound.playOneShot(context, applauseResId)
 
         // 紙吹雪
         showConfetti = true
@@ -246,13 +245,3 @@ private data class ConfettiParticle(
     val color: Color,
 )
 
-private fun playOneShot(context: Context, resId: Int) {
-    if (resId == 0) return
-    runCatching {
-        val mp = MediaPlayer.create(context, resId)
-        if (mp != null) {
-            mp.setOnCompletionListener { it.release() }
-            mp.start()
-        }
-    }
-}

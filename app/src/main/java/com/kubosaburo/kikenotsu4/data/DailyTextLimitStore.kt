@@ -81,5 +81,10 @@ object DailyTextLimitStore {
     fun isLimitReached(context: Context, limitPerDay: Int): Boolean {
         return getUsedCount(context) >= limitPerDay
     }
+
+    /** 今日のカウント等を含めて全削除 */
+    fun clear(context: Context) {
+        context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit { clear() }
+    }
 }
 

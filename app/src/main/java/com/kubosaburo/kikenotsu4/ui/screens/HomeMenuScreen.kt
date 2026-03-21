@@ -65,13 +65,6 @@ fun HomeMenuScreen(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
-//        // Header
-//        Text(
-//            text = "ホーム",
-//            style = MaterialTheme.typography.titleMedium,
-//            fontWeight = FontWeight.Bold
-//        )
-
         // 「学習スタート」カード（トップの白いカード風）
         if (totalSections != null && completedSections != null) {
             Card(

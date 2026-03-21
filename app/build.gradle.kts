@@ -37,6 +37,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -54,6 +55,9 @@ dependencies {
 
     // Google Mobile Ads (AdMob)
     implementation("com.google.android.gms:play-services-ads:23.3.0")
+
+    // 視聴学習リマインド（周期通知）
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
 
     // Material Icons (extended) for MenuBook / School / Assignment etc.
     implementation("androidx.compose.material:material-icons-extended")

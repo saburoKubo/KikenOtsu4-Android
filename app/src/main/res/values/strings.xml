@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">危険物乙4</string>
+    <string name="video_study_reminder_notification_title">視聴学習の時間です</string>
+    <string name="video_study_reminder_notification_text">動画・視聴コンテンツの学習を進めましょう。</string>
 </resources>
