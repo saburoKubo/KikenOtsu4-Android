@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>危険物乙4 学習アプリ（Android版）| 公式ページ</title>
+  <meta name="description" content="Android版：テキスト＋問題＋復習で乙4学習。無料版では広告が表示されます。カリキュラム・模擬テスト対応。データは端末内保存（ログイン不要）。" />
+
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:rgba(255,255,255,.08);
+      --fg:#f7f7fb;
+      --muted:rgba(255,255,255,.72);
+      --line:rgba(255,255,255,.14);
+      --accent:#7c5cff;
+      --accent2:#29d3ff;
+      --link:#b7a7ff;
+      --warn:#ffb020;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif;
+      color:var(--fg);
+      background:
+        radial-gradient(900px 600px at 20% 10%, rgba(124,92,255,.35), transparent 60%),
+        radial-gradient(900px 600px at 90% 30%, rgba(41,211,255,.28), transparent 60%),
+        radial-gradient(900px 600px at 40% 90%, rgba(46,229,157,.18), transparent 60%),
+        var(--bg);
+      line-height:1.7;
+      scroll-behavior:smooth;
+    }
+    a{ color:var(--link); text-decoration:none; }
+    a:hover{ text-decoration:underline; }
+
+    .wrap{ max-width:980px; margin:0 auto; padding:28px 16px 64px; }
+
+    .nav{
+      display:flex; gap:12px; align-items:center; justify-content:space-between;
+      padding:10px 12px; border:1px solid var(--line); border-radius:14px;
+      background:rgba(0,0,0,.18);
+      backdrop-filter: blur(10px);
+      position:sticky; top:12px; z-index:10;
+    }
+    .brand{ display:flex; gap:10px; align-items:center; }
+    .logo{
+      width:34px; height:34px; border-radius:10px;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      box-shadow:0 10px 30px rgba(124,92,255,.18);
+    }
+    .brand b{ font-size:14px; }
+    .navlinks{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+    .pill{
+      display:inline-flex; gap:8px; align-items:center;
+      padding:8px 10px; border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      font-size:13px;
+      white-space:nowrap;
+    }
+
+    .hero{ padding:26px 2px 10px; }
+    .heroGrid{ display:grid; grid-template-columns:1fr; gap:18px; align-items:center; }
+    @media (min-width:860px){
+      .heroGrid{ grid-template-columns:1.2fr .8fr; }
+    }
+
+    .badge{ display:inline-flex; align-items:center; gap:6px; font-size:12px; padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.08); border:1px solid var(--line); }
+    h1{ margin:10px 0 10px; font-size:28px; line-height:1.25; letter-spacing:.2px; }
+    @media (min-width:780px){ h1{ font-size:36px; } }
+    .lead{ color:var(--muted); margin:0 0 16px; max-width:62ch; }
+    .ctaRow{ display:flex; gap:12px; flex-wrap:wrap; margin-top:14px; }
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      padding:10px 14px; border-radius:14px; border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      color:var(--fg);
+      font-weight:600;
+    }
+    .btn.primary{
+      border:none;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      color:#061018;
+    }
+
+    .heroImgWrap{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      border-radius:18px;
+      padding:14px;
+      display:flex; align-items:center; justify-content:center;
+      backdrop-filter: blur(10px);
+    }
+    .heroImg{
+      width:min(320px, 100%);
+      height:auto;
+      border-radius:14px;
+      display:block;
+    }
+
+    .grid{ display:grid; gap:12px; grid-template-columns:repeat(12,1fr); margin-top:18px; }
+    .card{
+      grid-column:span 12;
+      padding:16px; border-radius:16px;
+      border:1px solid var(--line);
+      background:var(--card);
+      backdrop-filter: blur(10px);
+    }
+    .card h2{ margin:0 0 8px; font-size:16px; }
+    .card p{ margin:0; color:var(--muted); }
+    .card ul{ margin:10px 0 0 18px; color:var(--muted); }
+    @media (min-width:780px){
+      .card.span6{ grid-column:span 6; }
+      .card.span4{ grid-column:span 4; }
+    }
+
+    .sectionTitle{
+      margin:26px 0 10px;
+      font-size:18px;
+      letter-spacing:.2px;
+    }
+
+    .adbox{
+      border-left:3px solid var(--warn);
+      padding-left:14px;
+      margin-top:12px;
+    }
+    .adbox strong{ color:var(--fg); }
+
+    .shots{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+    }
+    @media (min-width:780px){
+      .shots{ grid-template-columns:repeat(3,1fr); }
+    }
+    .shot{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      border-radius:16px;
+      overflow:hidden;
+    }
+    .shot img{
+      width:100%;
+      height:auto;
+      display:block;
+      background:rgba(0,0,0,.18);
+    }
+    .shot .cap{
+      padding:10px 12px;
+      color:var(--muted);
+      font-size:13px;
+      border-top:1px solid var(--line);
+    }
+
+    details{
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:rgba(255,255,255,.06);
+      padding:10px 12px;
+    }
+    details + details{ margin-top:10px; }
+    summary{ cursor:pointer; font-weight:700; }
+    details p{ margin:8px 0 0; color:var(--muted); }
+
+    .footer{
+      margin-top:26px; padding-top:18px; border-top:1px solid var(--line);
+      color:rgba(255,255,255,.6); font-size:13px;
+      display:flex; gap:12px; flex-wrap:wrap; justify-content:space-between; align-items:center;
+    }
+    .smalllinks{ display:flex; gap:14px; flex-wrap:wrap; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="nav">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <b>危険物乙4 学習アプリ</b><br/>
+          <span style="font-size:12px;color:var(--muted);">Android版 · テキスト＋問題＋復習</span>
+        </div>
+      </div>
+
+      <div class="navlinks">
+        <a class="pill" href="./index.html">iOS版（トップ）</a>
+        <a class="pill" href="https://play.google.com/store/apps/details?id=com.kubosaburo.kikenotsu4">Google Play</a>
+        <a class="pill" href="#screenshots">スクショ</a>
+        <a class="pill" href="#ads">広告について</a>
+        <a class="pill" href="#faq">FAQ</a>
+        <a class="pill" href="./privacy.html">プライバシー</a>
+        <a class="pill" href="./terms.html">利用規約</a>
+      </div>
+    </div>
+
+    <div class="hero">
+      <div class="heroGrid">
+        <div>
+          <span class="badge">🤖 Android対応 · 無料版は広告あり</span>
+          <h1>「読む → 解く → 復習する」<br/>乙4対策を、迷わず積み上げる。</h1>
+          <p class="lead">
+            iOS版と同じ学びの流れを目指した Android アプリです。カリキュラムに沿った学習のほか、自分で学ぶ・本日の復習・模擬テストにも対応。<br/>
+            ブックマーク・進捗・復習履歴は端末内に保存され、ログインは不要です。<br/>
+            <strong style="color:var(--fg);">無料版ではバナー広告・インタースティシャル（全画面）広告が表示されます。</strong>広告の非表示などはアプリ内の有料版（Pro）案内および Google Play の説明をご確認ください。<br/>
+            ※ 機種変更時の引き継ぎ（クラウドバックアップ／復元）は現在未対応です。
+          </p>
+
+          <div class="ctaRow">
+            <a class="btn primary" href="https://play.google.com/store/apps/details?id=com.kubosaburo.kikenotsu4" rel="noopener noreferrer" target="_blank">
+              Google Playで見る
+            </a>
+            <a class="btn" href="https://apps.apple.com/jp/app/%E5%8D%B1%E9%99%BA%E7%89%A9%E4%B9%994%E5%AD%A6%E7%BF%92%E3%82%A2%E3%83%97%E3%83%AA/id6758747762">iOS版（App Store）</a>
+            <a class="btn" href="./index.html">公式トップ（iOS紹介）</a>
+            <a class="btn" href="./privacy.html">プライバシー</a>
+            <a class="btn" href="./terms.html">利用規約</a>
+          </div>
+        </div>
+
+        <div class="heroImgWrap">
+          <img class="heroImg" src="./assets/nicosme_whistle.png" alt="キャラクター画像" />
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card span6">
+        <h2>📘 テキスト＋問題で理解を固める</h2>
+        <p>テキストと確認問題で「理解→定着」。カリキュラム順の学習や、一覧からの自由学習に対応。</p>
+        <ul>
+          <li>カリキュラムモードで続きから再開</li>
+          <li>学んだ直後に確認問題</li>
+          <li>テキスト一覧・検索・ブックマーク</li>
+        </ul>
+      </div>
+
+      <div class="card span6">
+        <h2>🔁 本日の復習（忘却曲線ベース）</h2>
+        <p>忘れかけに合わせて復習問題を案内。ホームや学習の流れからセッションに入れます。</p>
+        <ul>
+          <li>復習対象の自動抽出</li>
+          <li>復習履歴の保存（端末内）</li>
+        </ul>
+      </div>
+
+      <div class="card span4">
+        <h2>🔖 ブックマーク</h2>
+        <p>気になるテキストを保存し、あとでまとめて見直し。</p>
+      </div>
+
+      <div class="card span4">
+        <h2>📊 進捗が見える</h2>
+        <p>カリキュラムの進みや解答傾向を確認しやすくします。</p>
+      </div>
+
+      <div class="card span4">
+        <h2>📝 模擬テスト</h2>
+        <p>本番に近い形式での実力チェック（画面の案内に従ってください）。</p>
+      </div>
+
+      <div class="card span6">
+        <h2>📦 データは端末内に保存</h2>
+        <p>ログイン不要。学習データは原則として端末内のみに保存されます。</p>
+      </div>
+
+      <div class="card span6">
+        <h2>📢 広告・有料版（Android）</h2>
+        <p>無料利用時は第三者配信の広告が表示されます。詳しくは下の「広告について」セクションをご覧ください。</p>
+      </div>
+    </div>
+
+    <h2 class="sectionTitle" id="play">Google Play</h2>
+    <div class="card">
+      <p>
+        Android でのインストールはこちら：
+        <a href="https://play.google.com/store/apps/details?id=com.kubosaburo.kikenotsu4" rel="noopener noreferrer" target="_blank">Google Playで見る</a>
+      </p>
+      <p style="margin-top:8px;">
+        表示内容・課金・返金は Google Play のポリシーおよびアプリ内表示に従います。
+      </p>
+    </div>
+
+    <h2 class="sectionTitle" id="ads">広告について（Android版）</h2>
+    <div class="card">
+      <p>
+        <strong style="color:var(--fg);">Android版の無料利用では、広告が表示されます。</strong>
+        例として、ホームや一覧画面の下部にバナー広告が表示されたり、学習の途中でインタースティシャル（全画面）広告が表示される場合があります。広告の内容は配信ネットワークにより変動します。
+      </p>
+      <div class="adbox">
+        <p>
+          <strong>有料版（Pro）</strong>については、アプリ内の案内および Google Play の商品説明をご確認ください（広告の非表示・学習上限の緩和など）。<br/>
+          <strong>iOS版</strong>では、広告の有無・表示形式が異なる場合があります。
+        </p>
+      </div>
+    </div>
+
+    <h2 class="sectionTitle" id="screenshots">スクショ</h2>
+    <div class="card">
+      <p>Android 実機のキャプチャに差し替えてください（iOS版ページと同じ assets を流用する場合はパスを合わせます）。</p>
+      <div class="shots" style="margin-top:12px;">
+        <div class="shot">
+          <img src="./assets/screenshot_1.png" alt="スクリーンショット1（差し替え）" />
+          <div class="cap">ホーム・学習メニュー</div>
+        </div>
+        <div class="shot">
+          <img src="./assets/screenshot_2.png" alt="スクリーンショット2（差し替え）" />
+          <div class="cap">テキスト＋問題</div>
+        </div>
+        <div class="shot">
+          <img src="./assets/F1CB094C-DFAD-40CB-B2F9-BE953AD22955_4_5005_c.jpeg" alt="スクリーンショット3（差し替え）" />
+          <div class="cap">復習・その他画面</div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="sectionTitle" id="faq">FAQ</h2>
+    <div class="card">
+      <details>
+        <summary>Q. 広告は必ず表示されますか？</summary>
+        <p>A. 無料版では表示されます。非表示や上限緩和は有料版（Pro）の案内に従ってください。</p>
+      </details>
+
+      <details>
+        <summary>Q. 合格を保証しますか？</summary>
+        <p>A. 学習支援を目的としており、合格を保証するものではありません。</p>
+      </details>
+
+      <details>
+        <summary>Q. データのバックアップはできますか？</summary>
+        <p>A. クラウドバックアップ／機種変更時の引き継ぎは現在未対応です。データは端末内に保存されます。</p>
+      </details>
+
+      <details>
+        <summary>Q. 個人情報は取得しますか？</summary>
+        <p>A. プライバシーポリシーをご確認ください。</p>
+      </details>
+
+      <details>
+        <summary>Q. お問い合わせ先は？</summary>
+        <p><a href="mailto:kikenotsuinfo@gmail.com">kikenotsuinfo@gmail.com</a>（アプリ内「サポート／アプリ情報」からもご案内しています）</p>
+      </details>
+    </div>
+
+    <div class="footer">
+      <div>© Saburo KUBO · Android版紹介ページ</div>
+      <div class="smalllinks">
+        <a href="./index.html">iOS版トップ</a>
+        <a href="./privacy.html">プライバシーポリシー</a>
+        <a href="./terms.html">利用規約</a>
+        <a href="https://play.google.com/store/apps/details?id=com.kubosaburo.kikenotsu4" rel="noopener noreferrer" target="_blank">Google Play</a>
+        <a href="#screenshots">スクショ</a>
+        <a href="#ads">広告について</a>
+        <a href="#faq">FAQ</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

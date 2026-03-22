@@ -5,7 +5,8 @@ package com.kubosaburo.kikenotsu4.ui.screens
  */
 object SupportLegalTexts {
 
-    const val OFFICIAL_SITE_URL = "https://saburokubo.github.io/kikenotsu4-legal/"
+    /** Android アプリ「公式サイト」から開く紹介ページ（広告の説明は Android 向けに記載） */
+    const val OFFICIAL_SITE_URL = "https://saburokubo.github.io/kikenotsu4-legal/android.html"
     const val PRIVACY_POLICY_URL = "https://saburokubo.github.io/kikenotsu4-legal/privacy.html"
     /** GitHub Pages に `terms.html` を配置したときの URL */
     const val TERMS_OF_SERVICE_URL = "https://saburokubo.github.io/kikenotsu4-legal/terms.html"

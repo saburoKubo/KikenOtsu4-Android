@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>危険物乙4 学習アプリ | 公式ページ</title>
+  <meta name="description" content="危険物取扱者 乙種4類の学習を、テキスト＋問題＋復習で効率化。ブックマーク・進捗・復習履歴は端末内に保存されます（ログイン不要）。" />
+
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:rgba(255,255,255,.08);
+      --fg:#f7f7fb;
+      --muted:rgba(255,255,255,.72);
+      --line:rgba(255,255,255,.14);
+      --accent:#7c5cff;
+      --accent2:#29d3ff;
+      --link:#b7a7ff;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,"Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif;
+      color:var(--fg);
+      background:
+        radial-gradient(900px 600px at 20% 10%, rgba(124,92,255,.35), transparent 60%),
+        radial-gradient(900px 600px at 90% 30%, rgba(41,211,255,.28), transparent 60%),
+        radial-gradient(900px 600px at 40% 90%, rgba(46,229,157,.18), transparent 60%),
+        var(--bg);
+      line-height:1.7;
+      scroll-behavior:smooth;
+    }
+    a{ color:var(--link); text-decoration:none; }
+    a:hover{ text-decoration:underline; }
+
+    .wrap{ max-width:980px; margin:0 auto; padding:28px 16px 64px; }
+
+    .nav{
+      display:flex; gap:12px; align-items:center; justify-content:space-between;
+      padding:10px 12px; border:1px solid var(--line); border-radius:14px;
+      background:rgba(0,0,0,.18);
+      backdrop-filter: blur(10px);
+      position:sticky; top:12px; z-index:10;
+    }
+    .brand{ display:flex; gap:10px; align-items:center; }
+    .logo{
+      width:34px; height:34px; border-radius:10px;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      box-shadow:0 10px 30px rgba(124,92,255,.18);
+    }
+    .brand b{ font-size:14px; }
+    .navlinks{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+    .pill{
+      display:inline-flex; gap:8px; align-items:center;
+      padding:8px 10px; border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      font-size:13px;
+      white-space:nowrap;
+    }
+
+    .hero{ padding:26px 2px 10px; }
+    .heroGrid{ display:grid; grid-template-columns:1fr; gap:18px; align-items:center; }
+    @media (min-width:860px){
+      .heroGrid{ grid-template-columns:1.2fr .8fr; }
+    }
+
+    .badge{ display:inline-flex; align-items:center; gap:6px; font-size:12px; padding:6px 10px; border-radius:999px; background:rgba(255,255,255,.08); border:1px solid var(--line); }
+    h1{ margin:10px 0 10px; font-size:28px; line-height:1.25; letter-spacing:.2px; }
+    @media (min-width:780px){ h1{ font-size:36px; } }
+    .lead{ color:var(--muted); margin:0 0 16px; max-width:62ch; }
+    .ctaRow{ display:flex; gap:12px; flex-wrap:wrap; margin-top:14px; }
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center; gap:8px;
+      padding:10px 14px; border-radius:14px; border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      color:var(--fg);
+      font-weight:600;
+    }
+    .btn.primary{
+      border:none;
+      background:linear-gradient(135deg,var(--accent),var(--accent2));
+      color:#061018;
+    }
+
+    .heroImgWrap{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      border-radius:18px;
+      padding:14px;
+      display:flex; align-items:center; justify-content:center;
+      backdrop-filter: blur(10px);
+    }
+    .heroImg{
+      width:min(320px, 100%);
+      height:auto;
+      border-radius:14px;
+      display:block;
+    }
+
+    .grid{ display:grid; gap:12px; grid-template-columns:repeat(12,1fr); margin-top:18px; }
+    .card{
+      grid-column:span 12;
+      padding:16px; border-radius:16px;
+      border:1px solid var(--line);
+      background:var(--card);
+      backdrop-filter: blur(10px);
+    }
+    .card h2{ margin:0 0 8px; font-size:16px; }
+    .card p{ margin:0; color:var(--muted); }
+    .card ul{ margin:10px 0 0 18px; color:var(--muted); }
+    @media (min-width:780px){
+      .card.span6{ grid-column:span 6; }
+      .card.span4{ grid-column:span 4; }
+    }
+
+    .sectionTitle{
+      margin:26px 0 10px;
+      font-size:18px;
+      letter-spacing:.2px;
+    }
+
+    .shots{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+    }
+    @media (min-width:780px){
+      .shots{ grid-template-columns:repeat(3,1fr); }
+    }
+    .shot{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.06);
+      border-radius:16px;
+      overflow:hidden;
+    }
+    .shot img{
+      width:100%;
+      height:auto;
+      display:block;
+      background:rgba(0,0,0,.18);
+    }
+    .shot .cap{
+      padding:10px 12px;
+      color:var(--muted);
+      font-size:13px;
+      border-top:1px solid var(--line);
+    }
+
+    details{
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:rgba(255,255,255,.06);
+      padding:10px 12px;
+    }
+    details + details{ margin-top:10px; }
+    summary{ cursor:pointer; font-weight:700; }
+    details p{ margin:8px 0 0; color:var(--muted); }
+
+    .footer{
+      margin-top:26px; padding-top:18px; border-top:1px solid var(--line);
+      color:rgba(255,255,255,.6); font-size:13px;
+      display:flex; gap:12px; flex-wrap:wrap; justify-content:space-between; align-items:center;
+    }
+    .smalllinks{ display:flex; gap:14px; flex-wrap:wrap; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="nav">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <b>危険物乙4 学習アプリ</b><br/>
+          <span style="font-size:12px;color:var(--muted);">テキスト＋問題＋復習で効率学習</span>
+        </div>
+      </div>
+
+      <div class="navlinks">
+        <a class="pill" href="./android.html">Android版</a>
+        <a class="pill" href="https://apps.apple.com/jp/app/%E5%8D%B1%E9%99%BA%E7%89%A9%E4%B9%994%E5%AD%A6%E7%BF%92%E3%82%A2%E3%83%97%E3%83%AA/id6758747762">App Store</a>
+        <a class="pill" href="#screenshots">スクショ</a>
+        <a class="pill" href="#faq">FAQ</a>
+        <a class="pill" href="./privacy.html">プライバシー</a>
+        <a class="pill" href="./terms.html">利用規約</a>
+      </div>
+    </div>
+
+    <div class="hero">
+      <div class="heroGrid">
+        <div>
+          <span class="badge">📱 iOS対応 / 学習支援アプリ</span>
+          <h1>「読む → 解く → 復習する」<br/>乙4対策を、迷わず積み上げる。</h1>
+          <p class="lead">
+            危険物取扱者 乙種4類の学習を、テキスト・確認問題・忘却曲線ベースの復習で一つに整理。<br/>
+            ブックマークや進捗・復習履歴は端末内に保存され、ログインは不要です。<br/>
+            ※ 機種変更時の引き継ぎ（クラウドバックアップ／復元）は現在未対応です。
+          </p>
+
+          <div class="ctaRow">
+            <a class="btn primary" href="https://apps.apple.com/jp/app/%E5%8D%B1%E9%99%BA%E7%89%A9%E4%B9%994%E5%AD%A6%E7%BF%92%E3%82%A2%E3%83%97%E3%83%AA/id6758747762">
+              App Storeで見る
+            </a>
+            <a class="btn" href="./android.html">Android版の紹介</a>
+            <a class="btn" href="./privacy.html">プライバシー</a>
+            <a class="btn" href="./terms.html">利用規約</a>
+          </div>
+        </div>
+
+        <div class="heroImgWrap">
+          <img class="heroImg" src="./assets/nicosme_whistle.png" alt="キャラクター画像" />
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card span6">
+        <h2>📘 テキスト＋問題で理解を固める</h2>
+        <p>ポイントを短く整理したテキストと、すぐ解ける確認問題で「理解→定着」を早回し。</p>
+        <ul>
+          <li>読みやすい章立て</li>
+          <li>学んだ直後に確認問題</li>
+          <li>苦手の発見が早い</li>
+        </ul>
+      </div>
+
+      <div class="card span6">
+        <h2>🔁 本日の復習（忘却曲線ベース）</h2>
+        <p>復習は「必要なタイミング」に出るのが大事。忘れかけに合わせて復習が出題されます。</p>
+        <ul>
+          <li>復習対象を自動抽出</li>
+          <li>学習の継続をサポート</li>
+          <li>復習履歴の保存（端末内）</li>
+        </ul>
+      </div>
+
+      <div class="card span4">
+        <h2>🔖 ブックマーク</h2>
+        <p>気になるテキストや問題を保存して、あとで集中して見直せます。</p>
+      </div>
+
+      <div class="card span4">
+        <h2>📊 進捗が見える</h2>
+        <p>どこまで進んだかが分かると、学習計画が立てやすくなります。</p>
+      </div>
+
+      <div class="card span4">
+        <h2>📦 データは端末内に保存</h2>
+        <p>ブックマーク・進捗・復習履歴は端末内に保存されます（ログイン不要）。</p>
+      </div>
+    </div>
+
+    <h2 class="sectionTitle" id="appstore">App Store</h2>
+    <div class="card">
+      <p>
+        iPhoneでインストールはこちら：
+        <a href="https://apps.apple.com/jp/app/%E5%8D%B1%E9%99%BA%E7%89%A9%E4%B9%994%E5%AD%A6%E7%BF%92%E3%82%A2%E3%83%97%E3%83%AA/id6758747762">
+          App Storeで見る
+        </a>
+      </p>
+      <p style="margin-top:8px;">
+        App Storeで公開中です。iPhoneから上のリンクよりダウンロードできます。
+      </p>
+    </div>
+
+    <h2 class="sectionTitle" id="screenshots">スクショ</h2>
+    <div class="card">
+      <p>ここにアプリの画面スクリーンショットを載せられます（最大3枚例）。</p>
+      <div class="shots" style="margin-top:12px;">
+        <div class="shot">
+          <img src="./assets/screenshot_1.png" alt="スクリーンショット1（差し替え）" />
+          <div class="cap">ホーム：学習メニューがひと目で分かる</div>
+        </div>
+        <div class="shot">
+          <img src="./assets/screenshot_2.png" alt="スクリーンショット2（差し替え）" />
+          <div class="cap">テキスト＋問題：読んで→すぐ確認</div>
+        </div>
+        <div class="shot">
+          <img src="assets/F1CB094C-DFAD-40CB-B2F9-BE953AD22955_4_5005_c.jpeg" alt="スクリーンショット3（差し替え）" />
+          <div class="cap">本日の復習：忘れかけに合わせて出題</div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="sectionTitle" id="faq">FAQ</h2>
+    <div class="card">
+      <details>
+        <summary>Q. 合格を保証しますか？</summary>
+        <p>A. 本アプリは学習支援を目的としています。合格を保証するものではありません。</p>
+      </details>
+
+      <details>
+        <summary>Q. データのバックアップはできますか？</summary>
+        <p>A. 現在、引き継ぎ（クラウドバックアップ／復元）には対応していません。学習データは端末内に保存されます。</p>
+      </details>
+
+      <details>
+        <summary>Q. 個人情報は取得しますか？</summary>
+        <p>A. 取得する可能性のある情報と利用目的は、プライバシーポリシーに記載します。</p>
+      </details>
+
+      <details>
+        <summary>Q. お問い合わせ先は？</summary>
+        <p>連絡先：<a href="mailto:kikenotsuinfo@gmail.com">kikenotsuinfo@gmail.com</a></p>
+      </details>
+    </div>
+
+    <div class="footer">
+      <div>© Saburo KUBO</div>
+      <div class="smalllinks">
+        <a href="./privacy.html">プライバシーポリシー</a>
+        <a href="./terms.html">利用規約</a>
+        <a href="./android.html">Android版</a>
+        <a href="https://apps.apple.com/jp/app/%E5%8D%B1%E9%99%BA%E7%89%A9%E4%B9%994%E5%AD%A6%E7%BF%92%E3%82%A2%E3%83%97%E3%83%AA/id6758747762">App Store</a>
+        <a href="#screenshots">スクショ</a>
+        <a href="#faq">FAQ</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
