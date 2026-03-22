@@ -1,6 +1,7 @@
 package com.kubosaburo.kikenotsu4.ui.screens
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -139,6 +141,26 @@ fun QuizScreen(
     }
 
     val q = questions[index]
+    val dark = isSystemInDarkTheme()
+    val scheme = MaterialTheme.colorScheme
+
+    val questionCardBg = if (dark) scheme.surfaceContainerHigh else Color(0xFFFFF2E8)
+    val questionCardBorder =
+        if (dark) scheme.outline.copy(alpha = 0.45f) else Color(0xFFF2C8A6)
+    val questionAccent = if (dark) scheme.primary else Color(0xFFF29A3A)
+    val onQuestionCard = scheme.onSurface
+
+    val choiceBaseBg = if (dark) scheme.surfaceContainerHighest else Color(0xFFF2F2F7)
+    val choiceSelectedBg = if (dark) scheme.surfaceContainerHigh else Color(0xFFEAEAF2)
+    val choiceBaseStroke =
+        if (dark) scheme.outlineVariant.copy(alpha = 0.6f) else Color(0xFFE2E2EA)
+
+    val correctBg = if (dark) Color(0xFF1A3D2E) else Color(0xFFEAF7EE)
+    val correctStroke = if (dark) Color(0xFF66BB6A) else Color(0xFF2E7D32)
+    val wrongBg = if (dark) Color(0xFF3D2424) else Color(0xFFFCE8E6)
+    val wrongStroke = if (dark) Color(0xFFFF8A80) else Color(0xFFC62828)
+
+    val choiceLetterBg = if (dark) scheme.surfaceContainer else Color(0xFFE9E9EF)
 
     Column(
         modifier = Modifier
@@ -169,18 +191,17 @@ fun QuizScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             item {
-                // 問題文（iOS風：薄オレンジ背景＋縁＋左の縦バー）
-                val border = Color(0xFFF2C8A6)
-                val bg = Color(0xFFFFF2E8)
-                val accent = Color(0xFFF29A3A)
-
+                // 問題文（iOS風：薄オレンジ背景＋縁＋左の縦バー）／ダークはサーフェス系
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .wrapContentHeight(unbounded = true),
                     shape = RoundedCornerShape(24.dp),
-                    colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = bg),
-                    border = BorderStroke(1.5.dp, border)
+                    colors = androidx.compose.material3.CardDefaults.cardColors(
+                        containerColor = questionCardBg,
+                        contentColor = onQuestionCard,
+                    ),
+                    border = BorderStroke(1.5.dp, questionCardBorder)
                 ) {
                     Column(
                         modifier = Modifier
@@ -196,12 +217,12 @@ fun QuizScreen(
                                     .width(6.dp)
                                     .height(18.dp)
                                     .clip(RoundedCornerShape(99.dp))
-                                    .background(accent)
+                                    .background(questionAccent)
                             )
 
                             Text(
                                 text = "問題",
-                                color = accent,
+                                color = questionAccent,
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.bodyMedium,
                                 modifier = Modifier.padding(start = 10.dp)
@@ -212,6 +233,7 @@ fun QuizScreen(
                             text = mdBold(q.question),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
+                            color = onQuestionCard,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .wrapContentHeight(unbounded = true),
@@ -243,7 +265,11 @@ fun QuizScreen(
                             text = msg,
                             modifier = Modifier.fillMaxWidth(),
                             characterSize = 96.dp,
-                            bubbleBorderColor = Color(0xFFE6B7C6) // やわらかめのピンク
+                            bubbleBorderColor = if (dark) {
+                                scheme.outline.copy(alpha = 0.4f)
+                            } else {
+                                Color(0xFFE6B7C6)
+                            }
                         )
                     }
                 }
@@ -256,27 +282,19 @@ fun QuizScreen(
                 val isCorrectChoice = (i == q.correctIndex)
                 val isWrongSelected = showExplanation && isSelected && !isCorrectChoice
 
-                val baseBg = Color(0xFFF2F2F7)
-                val selectedBg = Color(0xFFEAEAF2)
-                val baseStroke = Color(0xFFE2E2EA)
-
-                val correctBg = Color(0xFFEAF7EE)
-                val correctStroke = Color(0xFF2E7D32)
-                val wrongBg = Color(0xFFFCE8E6)
-                val wrongStroke = Color(0xFFC62828)
-
                 val containerColor = when {
                     showExplanation && isCorrectChoice -> correctBg
                     isWrongSelected -> wrongBg
-                    isSelected -> selectedBg
-                    else -> baseBg
+                    isSelected -> choiceSelectedBg
+                    else -> choiceBaseBg
                 }
 
                 val strokeColor = when {
                     showExplanation && isCorrectChoice -> correctStroke
                     isWrongSelected -> wrongStroke
-                    else -> baseStroke
+                    else -> choiceBaseStroke
                 }
+                val choiceContentColor = contentColorFor(containerColor)
 
                 val letter = ('A'.code + i).toChar().toString()
 
@@ -317,7 +335,10 @@ fun QuizScreen(
                         },
                     shape = RoundedCornerShape(24.dp),
                     border = BorderStroke(1.25.dp, strokeColor),
-                    colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = containerColor)
+                    colors = androidx.compose.material3.CardDefaults.cardColors(
+                        containerColor = containerColor,
+                        contentColor = choiceContentColor,
+                    )
                 ) {
                     Row(
                         modifier = Modifier
@@ -330,13 +351,14 @@ fun QuizScreen(
                             modifier = Modifier
                                 .size(44.dp)
                                 .clip(RoundedCornerShape(14.dp))
-                                .background(Color(0xFFE9E9EF))
+                                .background(choiceLetterBg)
                                 .wrapContentHeight(Alignment.CenterVertically)
                         ) {
                             Text(
                                 text = letter,
                                 fontWeight = FontWeight.Bold,
                                 style = MaterialTheme.typography.titleMedium,
+                                color = choiceContentColor,
                                 modifier = Modifier.align(Alignment.Center)
                             )
                         }
@@ -348,6 +370,7 @@ fun QuizScreen(
                             modifier = Modifier.weight(1f),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
+                            color = choiceContentColor,
                             textAlign = TextAlign.Start,
                             softWrap = true,
                             maxLines = Int.MAX_VALUE,
@@ -362,17 +385,22 @@ fun QuizScreen(
 
                 // ✅ 解説（iOS風カード）
                 item {
-                    val bg = Color(0xFFFFF2E8)
-                    val border = Color(0xFFF2C8A6)
-                    val accent = Color(0xFF5DBB63)
+                    val explBg = if (dark) scheme.surfaceContainerHigh else Color(0xFFFFF2E8)
+                    val explBorder =
+                        if (dark) scheme.outline.copy(alpha = 0.45f) else Color(0xFFF2C8A6)
+                    val explAccent = if (dark) Color(0xFF81C784) else Color(0xFF5DBB63)
+                    val explContent = scheme.onSurface
 
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .wrapContentHeight(unbounded = true),
                         shape = RoundedCornerShape(24.dp),
-                        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = bg),
-                        border = BorderStroke(1.5.dp, border)
+                        colors = androidx.compose.material3.CardDefaults.cardColors(
+                            containerColor = explBg,
+                            contentColor = explContent,
+                        ),
+                        border = BorderStroke(1.5.dp, explBorder)
                     ) {
                         Column(
                             modifier = Modifier
@@ -387,11 +415,11 @@ fun QuizScreen(
                                         .width(6.dp)
                                         .height(18.dp)
                                         .clip(RoundedCornerShape(99.dp))
-                                        .background(accent)
+                                        .background(explAccent)
                                 )
                                 Text(
                                     text = "解説",
-                                    color = accent,
+                                    color = explAccent,
                                     fontWeight = FontWeight.Bold,
                                     style = MaterialTheme.typography.bodyMedium,
                                     modifier = Modifier.padding(start = 10.dp)
@@ -402,6 +430,7 @@ fun QuizScreen(
                                 text = mdBold(q.explanation),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
+                                color = explContent,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .wrapContentHeight(unbounded = true),

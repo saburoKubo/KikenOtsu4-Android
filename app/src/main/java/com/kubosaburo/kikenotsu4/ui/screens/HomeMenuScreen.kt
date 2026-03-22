@@ -26,7 +26,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -58,6 +60,15 @@ fun HomeMenuScreen(
 ) {
     val provider = StartingPraiseProvider(androidx.compose.ui.platform.LocalContext.current)
     val phrase = provider.randomStarting()
+    val dark = isSystemInDarkTheme()
+    val scheme = MaterialTheme.colorScheme
+    val startCardBg =
+        if (dark) scheme.surfaceContainerHigh else Color.White
+    // contentColorFor(Color.White) が端末・テーマで不適切になる事例があるため、ライトは固定の濃色にする
+    val startCardPrimaryText =
+        if (dark) scheme.onSurface else Color(0xFF1A1A1A)
+    val startCardSecondaryText =
+        if (dark) scheme.onSurfaceVariant else Color(0xFF5C5F66)
 
     Column(
         modifier = Modifier
@@ -72,7 +83,10 @@ fun HomeMenuScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
+                colors = CardDefaults.cardColors(
+                    containerColor = startCardBg,
+                    contentColor = startCardPrimaryText,
+                ),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column(
@@ -91,12 +105,13 @@ fun HomeMenuScreen(
                             Text(
                                 text = "学習スタート",
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                color = startCardPrimaryText,
                             )
                             Text(
                                 text = "自分に合った学び方を選んで始めよう",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = startCardSecondaryText,
                             )
                         }
 
@@ -105,7 +120,11 @@ fun HomeMenuScreen(
                             modifier = Modifier
                                 .size(32.dp)
                                 .background(
-                                    color = Color(0xFFFFF3E0),
+                                    color = if (dark) {
+                                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f)
+                                    } else {
+                                        Color(0xFFFFF3E0)
+                                    },
                                     shape = RoundedCornerShape(12.dp)
                                 ),
                             contentAlignment = Alignment.Center
@@ -113,7 +132,11 @@ fun HomeMenuScreen(
                             Icon(
                                 imageVector = Icons.Filled.School,
                                 contentDescription = null,
-                                tint = Color(0xFFFF8A1E),
+                                tint = if (dark) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    Color(0xFFFF8A1E)
+                                },
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -132,12 +155,13 @@ fun HomeMenuScreen(
                             Text(
                                 text = "進捗",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = startCardSecondaryText,
                             )
                             Text(
                                 text = "${completedSections}/${totalSections}",
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                color = startCardPrimaryText,
                             )
                             if (curriculumLap >= 2) {
                                 Text(
@@ -156,12 +180,13 @@ fun HomeMenuScreen(
                             Text(
                                 text = "復習",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = startCardSecondaryText,
                             )
                             Text(
                                 text = "${todayReviewCount ?: 0}件",
                                 style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                color = startCardPrimaryText,
                             )
                         }
                     }
@@ -210,7 +235,11 @@ fun HomeMenuScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFE0E0E0), RoundedCornerShape(12.dp))
+                .background(
+                    if (dark) MaterialTheme.colorScheme.surfaceContainerHighest
+                    else Color(0xFFE0E0E0),
+                    RoundedCornerShape(12.dp)
+                )
                 .padding(vertical = 4.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -237,12 +266,26 @@ private fun HomeMenuCard(
     containerColor: Color,
     onClick: () -> Unit,
 ) {
+    val dark = isSystemInDarkTheme()
+    val adaptedBg =
+        if (dark) MaterialTheme.colorScheme.surfaceContainerHigh else containerColor
+    val contentCol = contentColorFor(adaptedBg)
+    val subtitleCol =
+        if (dark) MaterialTheme.colorScheme.onSurfaceVariant
+        else contentCol.copy(alpha = 0.68f)
+    val iconTint =
+        if (dark) MaterialTheme.colorScheme.onSurfaceVariant
+        else contentCol.copy(alpha = 0.55f)
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(22.dp))
             .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = containerColor),
+        colors = CardDefaults.cardColors(
+            containerColor = adaptedBg,
+            contentColor = contentCol,
+        ),
         shape = RoundedCornerShape(22.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
@@ -257,10 +300,14 @@ private fun HomeMenuCard(
             Icon(
                 imageVector = leadingIcon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                tint = iconTint,
                 modifier = Modifier
                     .size(34.dp)
-                    .background(Color(0x33FFFFFF), RoundedCornerShape(12.dp))
+                    .background(
+                        if (dark) contentCol.copy(alpha = 0.12f)
+                        else Color(0x33FFFFFF),
+                        RoundedCornerShape(12.dp)
+                    )
                     .padding(6.dp)
             )
 
@@ -275,7 +322,7 @@ private fun HomeMenuCard(
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = subtitleCol,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -284,7 +331,7 @@ private fun HomeMenuCard(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                tint = iconTint
             )
         }
     }

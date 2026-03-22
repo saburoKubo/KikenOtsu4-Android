@@ -1,6 +1,7 @@
 
 package com.kubosaburo.kikenotsu4.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -38,6 +40,8 @@ import com.kubosaburo.kikenotsu4.R
 import com.kubosaburo.kikenotsu4.data.BookmarkStore
 import com.kubosaburo.kikenotsu4.data.TextItem
 import com.kubosaburo.kikenotsu4.ui.components.CharacterSpeechBubbleView
+import com.kubosaburo.kikenotsu4.ui.components.studyListItemCardContainerColor
+import com.kubosaburo.kikenotsu4.ui.components.studyListScreenBackgroundColor
 
 @Composable
 fun BookmarkScreen(
@@ -64,6 +68,7 @@ fun BookmarkScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
+            .background(studyListScreenBackgroundColor())
             .padding(contentPadding),
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -132,11 +137,15 @@ fun BookmarkScreen(
             }
         } else {
             items(items, key = { it.id }) { t ->
+                val rowBg = studyListItemCardContainerColor()
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { onOpenText(t.id) },
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    colors = CardDefaults.cardColors(
+                        containerColor = rowBg,
+                        contentColor = contentColorFor(rowBg),
+                    ),
                     shape = RoundedCornerShape(18.dp),
                     elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                 ) {

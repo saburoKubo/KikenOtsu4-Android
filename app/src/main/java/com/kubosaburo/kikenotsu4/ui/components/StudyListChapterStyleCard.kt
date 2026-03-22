@@ -20,11 +20,13 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -45,25 +47,25 @@ fun StudyListChapterStyleCard(
     categoryLabel: String? = null,
 ) {
     val dark = isSystemInDarkTheme()
-    val titleColor = Color(0xFF111111)
     val categoryColor = Color(0xFF6B7280)
     val chevronColor = Color(0xFF9CA3AF)
 
+    // ダーク: リスト床（surfaceContainerLowest 想定）より一段明るくして行の区切りをはっきりさせる
     val cardBg =
         if (dark) {
-            MaterialTheme.colorScheme.surface
+            MaterialTheme.colorScheme.surfaceContainerHigh
         } else {
             Color.White
         }
-    val cardContentColor =
-        if (dark) {
-            MaterialTheme.colorScheme.onSurface
-        } else {
-            Color(0xFF1A1A1A)
-        }
+    val cardContentColor = contentColorFor(cardBg)
 
     val descTrimmed = description.trim()
-    val descArgb = if (dark) 0xFFB8B8B8.toInt() else 0xFF4B5563.toInt()
+    val descArgb =
+        if (dark) {
+            MaterialTheme.colorScheme.onSurfaceVariant.toArgb()
+        } else {
+            0xFF4B5563.toInt()
+        }
 
     Card(
         onClick = onClick,
@@ -88,11 +90,7 @@ fun StudyListChapterStyleCard(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = if (dark) {
-                    MaterialTheme.colorScheme.onSurface
-                } else {
-                    titleColor
-                },
+                color = cardContentColor,
                 maxLines = 4,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -156,8 +154,22 @@ fun StudyListChapterStyleCard(
 @Composable
 fun studyListScreenBackgroundColor(): Color {
     return if (isSystemInDarkTheme()) {
-        MaterialTheme.colorScheme.background
+        // background / surface と同色だと行カードと溶けるため、一段暗い床にする
+        MaterialTheme.colorScheme.surfaceContainerLowest
     } else {
         Color(0xFFE9EEF5)
+    }
+}
+
+/**
+ * テキスト一覧・ブックマーク等の「1行カード」背景。
+ * ライトは白（淡い青灰床とのコントラスト）、ダークは [studyListScreenBackgroundColor] より明るいサーフェス。
+ */
+@Composable
+fun studyListItemCardContainerColor(): Color {
+    return if (isSystemInDarkTheme()) {
+        MaterialTheme.colorScheme.surfaceContainerHigh
+    } else {
+        Color.White
     }
 }

@@ -1,6 +1,7 @@
 
 package com.kubosaburo.kikenotsu4.ui.screens
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,6 +14,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -27,6 +29,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.kubosaburo.kikenotsu4.data.TextItem
+import com.kubosaburo.kikenotsu4.ui.components.studyListItemCardContainerColor
+import com.kubosaburo.kikenotsu4.ui.components.studyListScreenBackgroundColor
 
 @Composable
 fun SearchScreen(
@@ -54,6 +58,7 @@ fun SearchScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .background(studyListScreenBackgroundColor())
             .padding(contentPadding)
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -117,12 +122,16 @@ fun SearchScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             items(results, key = { it.id }) { t ->
+                val rowBg = studyListItemCardContainerColor()
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable { onOpenText(t.id) },
                     shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    colors = CardDefaults.cardColors(
+                        containerColor = rowBg,
+                        contentColor = contentColorFor(rowBg),
+                    ),
                     elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
                 ) {
                     Column(

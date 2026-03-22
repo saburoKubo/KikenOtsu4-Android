@@ -1,6 +1,7 @@
 package com.kubosaburo.kikenotsu4.ui.screens
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,6 +29,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -60,6 +62,11 @@ fun FreeStudyHomeScreen(
     @DrawableRes characterImage1: Int = R.drawable.ic_launcher_foreground,
     @DrawableRes characterImage2: Int? = null,
 ) {
+    val dark = isSystemInDarkTheme()
+    val bubbleOutline =
+        if (dark) MaterialTheme.colorScheme.outline.copy(alpha = 0.45f)
+        else Color(0xFFF6A6C7)
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -79,7 +86,7 @@ fun FreeStudyHomeScreen(
                 text = phrase,
                 modifier = Modifier,
                 characterSize = 120.dp,
-                bubbleBorderColor = Color(0xFFF6A6C7)
+                bubbleBorderColor = bubbleOutline
             )
         }
 
@@ -133,7 +140,17 @@ private fun FreeStudyCategoryCard(
     modifier: Modifier = Modifier,
 ) {
     val shape = RoundedCornerShape(22.dp)
-    val cardBg = Color(0xFFF2F3F7)
+    val dark = isSystemInDarkTheme()
+    val cardBg =
+        if (dark) MaterialTheme.colorScheme.surfaceContainerHigh
+        else Color(0xFFF2F3F7)
+    val contentCol = contentColorFor(cardBg)
+    val subtitleCol =
+        if (dark) MaterialTheme.colorScheme.onSurfaceVariant
+        else contentCol.copy(alpha = 0.65f)
+    val chevronTint =
+        if (dark) MaterialTheme.colorScheme.onSurfaceVariant
+        else contentCol.copy(alpha = 0.5f)
 
     Card(
         modifier = modifier
@@ -141,7 +158,10 @@ private fun FreeStudyCategoryCard(
             .height(110.dp)
             .clickable { onClick() },
         shape = shape,
-        colors = CardDefaults.cardColors(containerColor = cardBg),
+        colors = CardDefaults.cardColors(
+            containerColor = cardBg,
+            contentColor = contentCol,
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
@@ -188,20 +208,20 @@ private fun FreeStudyCategoryCard(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFF111111)
+                    color = contentCol
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color(0xFF6B7280)
+                    color = subtitleCol
                 )
             }
 
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = null,
-                tint = Color(0xFF9CA3AF),
+                tint = chevronTint,
                 modifier = Modifier.size(28.dp)
             )
         }
