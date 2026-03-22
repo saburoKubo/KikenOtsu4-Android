@@ -16,6 +16,7 @@ object LearningDataReset {
     fun clearAll(context: Context) {
         val app = context.applicationContext
         CurriculumProgressStore.clear(app)
+        CurriculumProgressStore.resetLap(app)
         app.getSharedPreferences("quiz_log", Context.MODE_PRIVATE).edit { clear() }
         // 復習（SM-2 相当）の nextReviewAt など
         app.getSharedPreferences("review_srs", Context.MODE_PRIVATE).edit { clear() }

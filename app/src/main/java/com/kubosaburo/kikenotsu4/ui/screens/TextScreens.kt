@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Box
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,12 +20,9 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -48,98 +44,140 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.kubosaburo.kikenotsu4.R
 import com.kubosaburo.kikenotsu4.data.TextItem
 import com.kubosaburo.kikenotsu4.ui.components.CharacterSpeechBubbleView
+import com.kubosaburo.kikenotsu4.ui.components.StudyListChapterStyleCard
+import com.kubosaburo.kikenotsu4.ui.components.studyListScreenBackgroundColor
 import com.kubosaburo.kikenotsu4.ui.parseBoldMarkdown
+import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
 
 @Composable
 fun TextListScreen(
     items: List<TextItem>,
     contentPadding: PaddingValues,
     onOpen: (String) -> Unit,
-    isEnabled: (String) -> Boolean = { true }
+    isEnabled: (String) -> Boolean = { true },
+    /** カリキュラム章と同じ説明（curriculum.json の章 description）。textId → 文言 */
+    curriculumDescriptionsByTextId: Map<String, String> = emptyMap(),
+    /** AppRoot の Column 内では weight(1f) を付ける */
+    modifier: Modifier = Modifier,
 ) {
+    // CurriculumHomeScreen と同系統のリスト UI（吹き出し・カード・余白・下部バナー）
     LazyColumn(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
+            .fillMaxWidth()
+            .background(studyListScreenBackgroundColor())
             .padding(contentPadding),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Header: character + speech bubble
         item {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 6.dp, bottom = 6.dp),
+                    .padding(bottom = 4.dp),
                 contentAlignment = Alignment.Center
             ) {
                 CharacterSpeechBubbleView(
                     characterImage1 = R.drawable.nicosme_normal,
                     characterImage2 = R.drawable.nicosme_openmouth,
-                    durationMillis = 1800L,
+                    durationMillis = 2200L,
                     text = parseBoldMarkdown("学びたいテキストを選んでね"),
-                    modifier = Modifier.wrapContentWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     characterSize = 120.dp,
                 )
             }
         }
 
-        items(items) { t ->
-            val enabled = isEnabled(t.id)
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .alpha(if (enabled) 1f else 0.45f)
-                    .clickable { onOpen(t.id) },
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 14.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+        if (items.isEmpty()) {
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                    shape = RoundedCornerShape(18.dp)
                 ) {
-                    Box(
+                    Column(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .padding(horizontal = 10.dp, vertical = 8.dp),
-                        contentAlignment = Alignment.Center
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        Text("テキストがありません", fontWeight = FontWeight.Bold)
                         Text(
-                            text = "📄",
-                            style = MaterialTheme.typography.titleMedium
+                            text = "データの読み込みに失敗している可能性があります。",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-
-                    Text(
-                        text = t.title,
-                        modifier = Modifier.weight(1f),
-                        style = MaterialTheme.typography.titleMedium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
                 }
+            }
+        } else {
+            items(
+                items,
+                key = { t -> "${t.id}_${t.categoryMain}_${t.content.hashCode()}" },
+            ) { t ->
+                val enabled = isEnabled(t.id)
+                // カテゴリは texts.json の category_main（法令／物理化学／性質・消火など）。
+                // curriculum の category_label は JSON 未設定だと全章「法令」になり得るため一覧では使わない。
+                val categoryLine =
+                    t.categoryMain?.trim().orEmpty().ifBlank { "法令" }
+                val fromCurriculum =
+                    curriculumDescriptionsByTextId[t.id]?.trim()?.takeIf { it.isNotEmpty() }
+                val previewRaw =
+                    t.content.firstOrNull { it.isNotBlank() }?.trim().orEmpty()
+                val preview =
+                    previewRaw.replace("**", "").trim().let { s ->
+                        if (s.length > 220) s.take(220) + "…" else s
+                    }
+                val descriptionLine =
+                    fromCurriculum ?: preview.ifBlank {
+                        "タップして本文・問題を開きます。"
+                    }
+                StudyListChapterStyleCard(
+                    title = t.title,
+                    description = descriptionLine,
+                    categoryLabel = categoryLine,
+                    enabled = enabled,
+                    onClick = { onOpen(t.id) }
+                )
             }
         }
 
-        item { Spacer(Modifier.height(24.dp)) }
+        item { Spacer(Modifier.height(20.dp)) }
+
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                TextListAdMobBanner()
+            }
+        }
     }
+}
+
+@Composable
+private fun TextListAdMobBanner(modifier: Modifier = Modifier) {
+    AndroidView(
+        modifier = modifier.fillMaxWidth(),
+        factory = { context ->
+            AdView(context).apply {
+                adUnitId = "ca-app-pub-3940256099942544/6300978111"
+                setAdSize(AdSize.BANNER)
+                loadAd(AdRequest.Builder().build())
+            }
+        }
+    )
 }
 
 @Composable

@@ -29,7 +29,6 @@ import com.kubosaburo.kikenotsu4.data.QuizLogStore
 import com.kubosaburo.kikenotsu4.data.LearnStreakStore
 import com.kubosaburo.kikenotsu4.ui.components.CharacterSpeechBubbleView
 import kotlin.math.roundToInt
-import androidx.compose.foundation.layout.Spacer
 
 @Suppress("unused")
 @Composable
@@ -37,6 +36,8 @@ fun ProgressScreen(
     quizLogStore: QuizLogStore,
     completedSectionCount: Int = 0,
     totalSectionCount: Int = 0,
+    /** [CurriculumProgressStore.loadLap]。2 以上で「○周目」を全体進捗に表示 */
+    curriculumLap: Int = 1,
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
     val context = LocalContext.current
@@ -66,16 +67,13 @@ fun ProgressScreen(
         contentPadding = PaddingValues(
             start = 16.dp,
             end = 16.dp,
-            top = contentPadding.calculateTopPadding() + 72.dp,
+            // Scaffold の innerPadding に TopAppBar 下辺が含まれるため、追加分は控えめに
+            top = contentPadding.calculateTopPadding() + 12.dp,
             bottom = contentPadding.calculateBottomPadding() + 120.dp,
         ),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        item {
-            Spacer(modifier = Modifier.height(10.dp))
-        }
-
         item {
             CharacterSpeechBubbleView(
                 characterImage1 = R.drawable.pico_normal,
@@ -101,11 +99,25 @@ fun ProgressScreen(
                     modifier = Modifier.padding(18.dp),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    Text(
-                        text = "全体の進捗",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "全体の進捗",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        if (curriculumLap >= 2) {
+                            Text(
+                                text = "${curriculumLap}周目",
+                                style = MaterialTheme.typography.labelLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
 
                     LinearProgressIndicator(
                         progress = { overallProgressValue },
@@ -134,7 +146,12 @@ fun ProgressScreen(
                     }
 
                     Text(
-                        text = "章全体の完了セクション数から進捗を表示しています。",
+                        text = buildString {
+                            append("章全体の完了セクション数から進捗を表示しています。")
+                            if (curriculumLap >= 2) {
+                                append(" カリキュラムを最後まで終えてからの再開は「${curriculumLap}周目」として表示します。")
+                            }
+                        },
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )

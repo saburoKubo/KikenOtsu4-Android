@@ -11,6 +11,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -26,6 +27,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -33,7 +35,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -53,17 +54,34 @@ import kotlinx.coroutines.delay
 import kotlin.random.Random
 
 /**
+ * [lap] は [com.kubosaburo.kikenotsu4.data.CurriculumProgressStore.loadLap]。
+ * 全完了時に先に周回が +1 されるため、初回完了直後は lap=2 → 初回文言、3 以上で「2周目も…」以降。
+ */
+fun finalCelebrationCopyForCurriculumLap(lap: Int): Pair<String, String> {
+    val title = "全カリキュラム完了！"
+    val message =
+        if (lap <= 2) {
+            "最後までやり切りました！本当におつかれさま！🎉"
+        } else {
+            "${lap - 1}周目もやり切りました。本当にお疲れ様"
+        }
+    return title to message
+}
+
+/**
  * Final celebration shown when the user completes ALL curriculum texts + quizzes.
  *
  * - Two-frame character animation (uses existing nicosme assets)
  * - Confetti overlay
- * - Button to go back Home
+ * - 最初のテキストから学び直す / ホームへ
  */
 @Composable
 fun FinalCelebrationScreen(
     contentPadding: PaddingValues,
     title: String = "全カリキュラム完了！",
     message: String = "最後までやり切りました！本当におつかれさま！🎉",
+    /** カリキュラム先頭のテキストから再開（null のときはボタン非表示・プレビュー用） */
+    onRestartFromFirst: (() -> Unit)? = null,
     onGoHome: () -> Unit,
 ) {
     val bgBrush = remember {
@@ -77,6 +95,8 @@ fun FinalCelebrationScreen(
 
     val context = LocalContext.current
 
+    // MediaPlayer は「再生完了リスナーで release」か「onDispose で release」のどちらか一方だけにする。
+    // 両方で release すると、音が終わったあとに「ホームへ戻る」で onDispose が既に解放済みインスタンスに触れてクラッシュする。
     DisposableEffect(Unit) {
         if (!LearningEffectSettings.isSoundEffectsEnabled(context)) {
             return@DisposableEffect onDispose { }
@@ -85,16 +105,17 @@ fun FinalCelebrationScreen(
         val mediaPlayer = MediaPlayer.create(context, R.raw.firework)
         mediaPlayer?.let { player ->
             player.setVolume(vol, vol)
-            player.setOnCompletionListener {
-                it.release()
-            }
             player.start()
         }
 
         onDispose {
             mediaPlayer?.run {
-                if (isPlaying) stop()
-                release()
+                runCatching {
+                    if (isPlaying) stop()
+                }
+                runCatching {
+                    release()
+                }
             }
         }
     }
@@ -160,21 +181,50 @@ fun FinalCelebrationScreen(
 
             Spacer(Modifier.height(18.dp))
 
-            Button(
-                onClick = onGoHome,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                shape = MaterialTheme.shapes.large,
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF8A3D))
-            ) {
-                Text("ホームへ戻る ▶︎", fontWeight = FontWeight.Bold)
+            if (onRestartFromFirst != null) {
+                Button(
+                    onClick = onRestartFromFirst,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = MaterialTheme.shapes.large,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF8A3D))
+                ) {
+                    Text("最初のテキストから学び直す ▶︎", fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.height(10.dp))
+                OutlinedButton(
+                    onClick = onGoHome,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = MaterialTheme.shapes.large,
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+                    border = BorderStroke(1.5.dp, Color.White.copy(alpha = 0.9f))
+                ) {
+                    Text("ホームへ戻る", fontWeight = FontWeight.SemiBold)
+                }
+            } else {
+                Button(
+                    onClick = onGoHome,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    shape = MaterialTheme.shapes.large,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF8A3D))
+                ) {
+                    Text("ホームへ戻る ▶︎", fontWeight = FontWeight.Bold)
+                }
             }
 
-            Spacer(Modifier.height(6.dp))
+            Spacer(Modifier.height(10.dp))
 
             Text(
-                text = "次は模擬試験や復習で、さらに仕上げていこう！",
+                text = if (onRestartFromFirst != null) {
+                    "最初から読み返すか、ホームで模擬試験・復習に進んでもOK！"
+                } else {
+                    "次は模擬試験や復習で、さらに仕上げていこう！"
+                },
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.White.copy(alpha = 0.92f),
                 textAlign = TextAlign.Center,

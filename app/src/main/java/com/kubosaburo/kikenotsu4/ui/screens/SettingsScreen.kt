@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -36,7 +35,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -55,10 +53,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.kubosaburo.kikenotsu4.ui.theme.KikenOtsu4Theme
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
+import com.kubosaburo.kikenotsu4.data.CurriculumProgressStore
 import com.kubosaburo.kikenotsu4.data.LearningDataReset
 import com.kubosaburo.kikenotsu4.data.LearningEffectSettings
 import com.kubosaburo.kikenotsu4.reminder.VideoStudyReminderScheduler
@@ -84,6 +81,13 @@ fun SettingsScreen(
     onProRestore: () -> Unit = {},
     onProModeChanged: (() -> Unit)? = null,
     onLearningDataCleared: (() -> Unit)? = null,
+    /** DEBUG 用：AppRoot で本番と同じ FinalCelebration（トップバー・下部ナビ・余白つき）を開く。 */
+    onDebugOpenFinalCelebration: () -> Unit = {},
+    /**
+     * DEBUG 用：指定 lap で [com.kubosaburo.kikenotsu4.ui.screens.finalCelebrationCopyForCurriculumLap] の文言を表示。
+     * 例: 2＝初回完了相当、3＝「2周目も…」、4＝「3周目も…」
+     */
+    onDebugPreviewFinalCelebrationCopyLap: (Int) -> Unit = {},
 ) {
     val context = LocalContext.current
 
@@ -91,8 +95,11 @@ fun SettingsScreen(
     var offsetDays by rememberSaveable {
         mutableIntStateOf(DebugClock.loadOffsetDays(context))
     }
-    var showFinalCelebrationPreview by rememberSaveable { mutableStateOf(false) }
     var proDebugOverride by rememberSaveable { mutableStateOf(DebugProMode.load(context)) }
+    var curriculumLapPreviewEpoch by remember { mutableIntStateOf(0) }
+    val debugCurriculumLap = remember(curriculumLapPreviewEpoch) {
+        CurriculumProgressStore.loadLap(context.applicationContext)
+    }
 
     Column(
         modifier = Modifier
@@ -154,28 +161,21 @@ fun SettingsScreen(
                     onProModeChanged?.invoke()
                 }
             )
-            DebugFinalCelebrationTestCard(
-                onOpen = { showFinalCelebrationPreview = true }
+            DebugFinalCelebrationTestCard(onOpen = onDebugOpenFinalCelebration)
+            DebugFinalCelebrationCopyPreviewCard(
+                onPreviewLap = onDebugPreviewFinalCelebrationCopyLap,
             )
-        }
-
-        if (showFinalCelebrationPreview) {
-            Dialog(
-                onDismissRequest = { showFinalCelebrationPreview = false },
-                properties = DialogProperties(usePlatformDefaultWidth = false)
-            ) {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .safeDrawingPadding()
-                ) {
-                    // FinalCelebrationScreen should call onGoHome when the user taps its main button.
-                    FinalCelebrationScreen(
-                        contentPadding = PaddingValues(0.dp),
-                        onGoHome = { showFinalCelebrationPreview = false }
-                    )
-                }
-            }
+            DebugCurriculumLapPreviewCard(
+                currentLap = debugCurriculumLap,
+                onBumpLap = {
+                    CurriculumProgressStore.debugIncrementLapForPreview(context.applicationContext)
+                    curriculumLapPreviewEpoch++
+                },
+                onResetLap = {
+                    CurriculumProgressStore.resetLap(context.applicationContext)
+                    curriculumLapPreviewEpoch++
+                },
+            )
         }
 
         Spacer(modifier = Modifier.height(20.dp))
@@ -736,6 +736,62 @@ private fun DebugTimeTravelCard(
 }
 
 @Composable
+private fun DebugFinalCelebrationCopyPreviewCard(
+    onPreviewLap: (Int) -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text("最終祝・文言プレビュー（DEBUG）", fontWeight = FontWeight.Bold)
+
+            Text(
+                "本番と同じ画面で、周回に応じたタイトル下の本文だけを切り替えて確認できます（保存の周回数は変わりません）。",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedButton(
+                    onClick = { onPreviewLap(2) },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("初回文言", maxLines = 1)
+                }
+                OutlinedButton(
+                    onClick = { onPreviewLap(3) },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("2周目文言", maxLines = 1)
+                }
+            }
+            OutlinedButton(
+                onClick = { onPreviewLap(4) },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("3周目文言（「3周目も…」）")
+            }
+
+            Text(
+                "※ lap=2 が初回完了直後と同じ。「ホームへ戻る」でオーバーライドは解除されます。",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
 private fun DebugFinalCelebrationTestCard(
     onOpen: () -> Unit,
 ) {
@@ -752,7 +808,7 @@ private fun DebugFinalCelebrationTestCard(
             Text("開発用（DEBUG）", fontWeight = FontWeight.Bold)
 
             Text(
-                "最終祝画面（FinalCelebration）をいつでも開いて、UIとボタン導線（閉じる動作）を確認できます。",
+                "本番と同じ経路で表示します（トップバー・下部ナビ・余白・2ボタン構成・花火SE）。",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -771,7 +827,59 @@ private fun DebugFinalCelebrationTestCard(
             }
 
             Text(
-                "※ このプレビューは設定画面上の全画面ダイアログとして表示します。実際のアプリ遷移（ホームへ戻る等）の確認は AppRoot 側の導線で行ってください。",
+                "※ 「ホームへ戻る」でホームに戻ります。「最初のテキストから学び直す」は本番と同じ遷移を試せます。",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun DebugCurriculumLapPreviewCard(
+    currentLap: Int,
+    onBumpLap: () -> Unit,
+    onResetLap: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text("進捗の「○周目」表示（DEBUG）", fontWeight = FontWeight.Bold)
+
+            Text(
+                text = "保存中の周回: ${currentLap}（2以上でホームの学習スタート・進捗タブに「○周目」が出ます）",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    onClick = onBumpLap,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("周回 +1")
+                }
+                OutlinedButton(
+                    onClick = onResetLap,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("周回リセット")
+                }
+            }
+
+            Text(
+                "※ 表示確認後は「周回リセット」で初回相当に戻せます。学習データ全消去でも周回はリセットされます。",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

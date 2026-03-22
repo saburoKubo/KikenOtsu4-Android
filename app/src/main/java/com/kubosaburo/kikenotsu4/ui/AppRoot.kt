@@ -15,6 +15,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -36,6 +37,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -55,6 +57,8 @@ import com.kubosaburo.kikenotsu4.data.TextItem
 import com.kubosaburo.kikenotsu4.data.CurriculumRoot
 import com.kubosaburo.kikenotsu4.data.CurriculumProgressStore
 import com.kubosaburo.kikenotsu4.data.CurriculumSection
+import com.kubosaburo.kikenotsu4.data.CurriculumSectionType
+import com.kubosaburo.kikenotsu4.data.textIdToCurriculumChapterDescriptionMap
 import com.kubosaburo.kikenotsu4.data.ProManager
 import com.kubosaburo.kikenotsu4.data.DailyTextLimitStore
 import com.kubosaburo.kikenotsu4.ui.screens.BookmarkScreen
@@ -70,6 +74,7 @@ import com.kubosaburo.kikenotsu4.ui.screens.CurriculumHomeScreen
 import com.kubosaburo.kikenotsu4.ui.screens.ReviewIntroScreen
 import com.kubosaburo.kikenotsu4.ui.screens.ReviewCompletionScreen
 import com.kubosaburo.kikenotsu4.ui.screens.FinalCelebrationScreen
+import com.kubosaburo.kikenotsu4.ui.screens.finalCelebrationCopyForCurriculumLap
 import com.kubosaburo.kikenotsu4.ui.screens.SettingsScreen as RealSettingsScreen
 import com.kubosaburo.kikenotsu4.ui.screens.MockTestHomeScreen
 import com.kubosaburo.kikenotsu4.ui.screens.MockTestSessionScreen
@@ -81,6 +86,13 @@ import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 private enum class BottomTab { HOME, PROGRESS, SETTINGS }
 private enum class HomeMode { MENU, FREE_STUDY, CURRICULUM, MOCK }
 private enum class FreeStudyMode { HOME, TEXT_LIST, BOOKMARKS, SEARCH }
+
+/** カリキュラムのセクションを開いた結果（上限ブロック時はホームメニューへ戻す判定に使う）。 */
+private enum class CurriculumOpenOutcome {
+    Opened,
+    BlockedByDailyLimit,
+    Failed,
+}
 
 @Composable
 fun AppRoot() {
@@ -113,6 +125,8 @@ fun AppRoot() {
     var celebrationTextId by rememberSaveable { mutableStateOf<String?>(null) }
     var celebrationIsCurriculum by rememberSaveable { mutableStateOf(false) }
     var showFinalCelebration by rememberSaveable { mutableStateOf(false) }
+    /** DEBUG: 0 以外のとき [finalCelebrationCopyForCurriculumLap] にこの lap を渡す（保存値は変えない）。 */
+    var debugFinalCelebrationLapOverride by rememberSaveable { mutableIntStateOf(0) }
     var forceShowHomeRoot by rememberSaveable { mutableStateOf(false) }
 
     // ✅ Curriculum Auto Review (SRS)
@@ -203,6 +217,7 @@ fun AppRoot() {
         curriculumError = null
 
         showFinalCelebration = false
+        debugFinalCelebrationLapOverride = 0
         curriculumTextOpenedFromResume = false
         showMockTestSession = false
         showMockTestHome = false
@@ -266,6 +281,23 @@ fun AppRoot() {
         return null
     }
 
+    /**
+     * クイズセクションの直前にあるテキストセクション（curriculum.json の text.nextId == quizSectionId）。
+     * 再開時にテキスト画面だけ先に出す場合、current をクイズIDのままにすると
+     * 「このテキストの問題へ」で quiz.nextId（次章テキスト等）へ誤遷移するため使う。
+     */
+    fun findTextSectionPrecedingQuiz(quizSectionId: String): CurriculumSection? {
+        return flattenedCurriculumSections().firstOrNull { sec ->
+            sec.type == CurriculumSectionType.TEXT && sec.nextId == quizSectionId
+        }
+    }
+
+    fun findTextSectionByRefId(textId: String): CurriculumSection? {
+        return flattenedCurriculumSections().firstOrNull { sec ->
+            sec.type == CurriculumSectionType.TEXT && sec.refId == textId
+        }
+    }
+
     fun loadSectionInterstitialIfNeeded() {
         if (sectionInterstitialAd != null || isLoadingSectionInterstitial) return
 
@@ -293,7 +325,7 @@ fun AppRoot() {
         )
     }
 
-    fun openCurriculumSection(sectionId: String, sectionType: String, refId: String) {
+    fun openCurriculumSection(sectionId: String, sectionType: String, refId: String): CurriculumOpenOutcome {
         curriculumError = null
 
         // 無料版は「テキスト問題（お祝い到達）」が1日2問まで。
@@ -313,7 +345,7 @@ fun AppRoot() {
                 !DailyTextLimitStore.hasCompletedText(context, targetTextId)
             ) {
                 showDailyTextLimitDialog = true
-                return
+                return CurriculumOpenOutcome.BlockedByDailyLimit
             }
         }
 
@@ -332,7 +364,7 @@ fun AppRoot() {
                 val qForGroup = questions.filter { it.groupId == refId }
                 val firstQ = qForGroup.ifEmpty {
                     curriculumError = "クイズの参照IDが見つかりません: $refId"
-                    return
+                    return CurriculumOpenOutcome.Failed
                 }.first()
 
                 val mappedTextId = firstQ.textId
@@ -341,8 +373,22 @@ fun AppRoot() {
             }
             else -> {
                 curriculumError = "未対応のセクション種別: $sectionType"
+                return CurriculumOpenOutcome.Failed
             }
         }
+        return CurriculumOpenOutcome.Opened
+    }
+
+    /**
+     * カリキュラムの先頭テキストセクションを開く（ホームの「カリキュラムで学ぶ」や最終お祝いからの再開用）。
+     * @return 開けたら true（カリキュラムが空などで開けなければ false）
+     */
+    fun openFirstCurriculumTextSection(): Boolean {
+        val all = flattenedCurriculumSections()
+        val first = all.firstOrNull { it.type == CurriculumSectionType.TEXT }
+            ?: all.firstOrNull()
+            ?: return false
+        return openCurriculumSection(first.id, first.type, first.refId) == CurriculumOpenOutcome.Opened
     }
 
     fun advanceCurriculumFromCurrentSection() {
@@ -355,6 +401,8 @@ fun AppRoot() {
         curriculumCurrentSectionId = nextId
 
         if (nextId == null) {
+            // 最後のセクションまで到達したら周回を進める（次に 0/N と並べて「2周目」等を表示）
+            CurriculumProgressStore.incrementLapAfterFullCurriculumRound(context)
             CurriculumProgressStore.clear(context)
             curriculumCurrentSectionId = null
         } else {
@@ -365,9 +413,24 @@ fun AppRoot() {
     fun openSavedCurriculumOrHome() {
         curriculumError = null
 
-        val nextId = curriculumNextSectionId ?: run {
-            homeMode = HomeMode.CURRICULUM
+        val nextId = curriculumNextSectionId
+        if (nextId == null) {
+            // 「自分で学ぶ」で章を選べるので、続きなしのときは章一覧ではなく常に先頭テキストから
+            selectedTab = BottomTab.HOME
+            forceShowHomeRoot = false
             freeStudyMode = FreeStudyMode.HOME
+            curriculumTextOpenedFromResume = false
+            val all = flattenedCurriculumSections()
+            val first = all.firstOrNull { it.type == CurriculumSectionType.TEXT }
+                ?: all.firstOrNull()
+            if (first == null) {
+                homeMode = HomeMode.CURRICULUM
+                return
+            }
+            homeMode = when (openCurriculumSection(first.id, first.type, first.refId)) {
+                CurriculumOpenOutcome.BlockedByDailyLimit -> HomeMode.MENU
+                else -> HomeMode.CURRICULUM
+            }
             return
         }
 
@@ -385,12 +448,29 @@ fun AppRoot() {
 
         val sec = findCurriculumSection(nextId)
         if (sec == null) {
-            curriculumError = "続きのセクションが見つかりません: $nextId"
             CurriculumProgressStore.clear(context)
             curriculumNextSectionId = null
             curriculumCurrentSectionId = null
-            homeMode = HomeMode.CURRICULUM
+            selectedTab = BottomTab.HOME
+            forceShowHomeRoot = false
             freeStudyMode = FreeStudyMode.HOME
+            curriculumTextOpenedFromResume = false
+            val all = flattenedCurriculumSections()
+            val first = all.firstOrNull { it.type == CurriculumSectionType.TEXT }
+                ?: all.firstOrNull()
+            if (first == null) {
+                homeMode = HomeMode.CURRICULUM
+                curriculumError = "続きのセクションが見つかりません: $nextId"
+                return
+            }
+            val reopenOutcome = openCurriculumSection(first.id, first.type, first.refId)
+            if (reopenOutcome == CurriculumOpenOutcome.Failed) {
+                curriculumError = "続きのセクションが見つかりません: $nextId"
+            }
+            homeMode = when (reopenOutcome) {
+                CurriculumOpenOutcome.BlockedByDailyLimit -> HomeMode.MENU
+                else -> HomeMode.CURRICULUM
+            }
             return
         }
 
@@ -404,13 +484,19 @@ fun AppRoot() {
             val qForGroup = questions.filter { it.groupId == sec.refId }
             val firstQ = qForGroup.firstOrNull()
             if (firstQ != null) {
-                curriculumCurrentSectionId = sec.id
+                val textSec = findTextSectionPrecedingQuiz(sec.id)
+                    ?: findTextSectionByRefId(firstQ.textId)
+                curriculumCurrentSectionId = textSec?.id ?: sec.id
                 selectedTextId = firstQ.textId
                 return
             }
         }
 
-        openCurriculumSection(sec.id, sec.type, sec.refId)
+        val openOutcome = openCurriculumSection(sec.id, sec.type, sec.refId)
+        if (openOutcome == CurriculumOpenOutcome.BlockedByDailyLimit) {
+            homeMode = HomeMode.MENU
+            curriculumTextOpenedFromResume = false
+        }
     }
 
     fun closeTextDetailToPreviousFlow() {
@@ -711,8 +797,41 @@ fun AppRoot() {
                     freeStudyMode = FreeStudyMode.HOME
                 }
 
+                val lapForFinalCelebrationCopy =
+                    if (debugFinalCelebrationLapOverride != 0) {
+                        debugFinalCelebrationLapOverride
+                    } else {
+                        CurriculumProgressStore.loadLap(context)
+                    }
+                val (finalCelebrationTitle, finalCelebrationMessage) =
+                    finalCelebrationCopyForCurriculumLap(lapForFinalCelebrationCopy)
                 FinalCelebrationScreen(
                     contentPadding = innerPadding,
+                    title = finalCelebrationTitle,
+                    message = finalCelebrationMessage,
+                    onRestartFromFirst = {
+                        debugFinalCelebrationLapOverride = 0
+                        showFinalCelebration = false
+                        celebrationMessage = null
+                        celebrationTextId = null
+                        celebrationIsCurriculum = false
+                        curriculumTextOpenedFromResume = false
+                        curriculumError = null
+                        showReviewIntro = false
+                        reviewIntroIds = emptyList()
+                        showReviewCompletion = false
+                        activeReviewIds = emptyList()
+                        isAutoReview = false
+                        quizTextId = null
+                        quizQuestionIds = emptyList()
+                        selectedTab = BottomTab.HOME
+                        forceShowHomeRoot = false
+                        homeMode = HomeMode.CURRICULUM
+                        freeStudyMode = FreeStudyMode.HOME
+                        if (!openFirstCurriculumTextSection()) {
+                            resetToHomeRoot()
+                        }
+                    },
                     onGoHome = {
                         resetToHomeRoot()
                     }
@@ -732,7 +851,15 @@ fun AppRoot() {
                     onLearningDataCleared = {
                         curriculumNextSectionId = CurriculumProgressStore.loadNextSectionId(context)
                         bookmarkedTextIds = bookmarkStore.loadBookmarkedTextIds().toSet()
-                    }
+                    },
+                    onDebugOpenFinalCelebration = {
+                        debugFinalCelebrationLapOverride = 0
+                        showFinalCelebration = true
+                    },
+                    onDebugPreviewFinalCelebrationCopyLap = { lapForCopy ->
+                        debugFinalCelebrationLapOverride = lapForCopy
+                        showFinalCelebration = true
+                    },
                 )
             }
             selectedTab == BottomTab.PROGRESS -> {
@@ -740,6 +867,7 @@ fun AppRoot() {
                     quizLogStore = quizLogStore,
                     completedSectionCount = completedSectionCount(),
                     totalSectionCount = totalSectionCount(),
+                    curriculumLap = CurriculumProgressStore.loadLap(context),
                     contentPadding = innerPadding,
                 )
             }
@@ -840,6 +968,7 @@ fun AppRoot() {
                     contentPadding = innerPadding,
                     totalSections = totalSectionCount().takeIf { it > 0 },
                     completedSections = completedSectionCount(),
+                    curriculumLap = CurriculumProgressStore.loadLap(context),
                     todayReviewCount = fetchDueReviewIds(context).size,
                     onGoCurriculum = {
                         forceShowHomeRoot = false
@@ -929,6 +1058,7 @@ fun AppRoot() {
                             CurriculumProgressStore.clear(context)
                             curriculumNextSectionId = null
                             curriculumCurrentSectionId = null
+                            debugFinalCelebrationLapOverride = 0
                             showFinalCelebration = true
                         } else {
                             val nextSec = findCurriculumSection(nextId)
@@ -940,17 +1070,26 @@ fun AppRoot() {
                                 homeMode = HomeMode.MENU
                             } else {
                                 // 復習終了後は、問題セクションで中断していた場合でもテキスト画面に戻す
+                                var resumeTextOnly = false
                                 if (nextSec.type == "quiz") {
                                     val qForGroup = questions.filter { it.groupId == nextSec.refId }
                                     val firstQ = qForGroup.firstOrNull()
                                     if (firstQ != null) {
-                                        curriculumCurrentSectionId = nextSec.id
+                                        val textSec = findTextSectionPrecedingQuiz(nextSec.id)
+                                            ?: findTextSectionByRefId(firstQ.textId)
+                                        curriculumCurrentSectionId = textSec?.id ?: nextSec.id
                                         selectedTextId = firstQ.textId
-                                    } else {
-                                        openCurriculumSection(nextSec.id, nextSec.type, nextSec.refId)
+                                        resumeTextOnly = true
                                     }
-                                } else {
-                                    openCurriculumSection(nextSec.id, nextSec.type, nextSec.refId)
+                                }
+                                if (!resumeTextOnly &&
+                                    openCurriculumSection(
+                                        nextSec.id,
+                                        nextSec.type,
+                                        nextSec.refId
+                                    ) == CurriculumOpenOutcome.BlockedByDailyLimit
+                                ) {
+                                    homeMode = HomeMode.MENU
                                 }
                             }
                         }
@@ -1024,6 +1163,7 @@ fun AppRoot() {
                                 CurriculumProgressStore.clear(context)
                                 curriculumNextSectionId = null
                                 curriculumCurrentSectionId = null
+                                debugFinalCelebrationLapOverride = 0
                                 showFinalCelebration = true
                                 return@SectionCelebrationScreen
                             }
@@ -1038,7 +1178,14 @@ fun AppRoot() {
                                 return@SectionCelebrationScreen
                             }
 
-                            openCurriculumSection(nextSec.id, nextSec.type, nextSec.refId)
+                            if (openCurriculumSection(
+                                    nextSec.id,
+                                    nextSec.type,
+                                    nextSec.refId
+                                ) == CurriculumOpenOutcome.BlockedByDailyLimit
+                            ) {
+                                homeMode = HomeMode.MENU
+                            }
                         } else {
                             // FreeStudy: return to text list
                             celebrationIsCurriculum = false
@@ -1275,9 +1422,16 @@ fun AppRoot() {
                                 emptySet()
                             }
 
+                            val curriculumDescByTextId = remember(curriculum) {
+                                textIdToCurriculumChapterDescriptionMap(curriculum)
+                            }
                             TextListScreen(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxWidth(),
                                 items = texts,
                                 contentPadding = PaddingValues(0.dp),
+                                curriculumDescriptionsByTextId = curriculumDescByTextId,
                                 isEnabled = { tid -> !isFreeLimitReached || completedTodayTextIds.contains(tid) },
                                 onOpen = { tid: String ->
                                     if (isFreeLimitReached && !completedTodayTextIds.contains(tid)) {
@@ -1326,6 +1480,9 @@ fun AppRoot() {
                     }
 
                     CurriculumHomeScreen(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
                         contentPadding = PaddingValues(0.dp),
                         chapters = curriculum?.chapters ?: emptyList(),
                         onOpenChapter = { chapterId ->
@@ -1336,7 +1493,14 @@ fun AppRoot() {
                                 curriculumError = "この章にはセクションがありません: $chapterId"
                                 return@CurriculumHomeScreen
                             }
-                            openCurriculumSection(first.id, first.type, first.refId)
+                            if (openCurriculumSection(
+                                    first.id,
+                                    first.type,
+                                    first.refId
+                                ) == CurriculumOpenOutcome.BlockedByDailyLimit
+                            ) {
+                                homeMode = HomeMode.MENU
+                            }
                         }
                     )
                 }
@@ -1348,6 +1512,7 @@ fun AppRoot() {
                     contentPadding = innerPadding,
                     totalSections = totalSectionCount().takeIf { it > 0 },
                     completedSections = completedSectionCount(),
+                    curriculumLap = CurriculumProgressStore.loadLap(context),
                     todayReviewCount = fetchDueReviewIds(context).size,
                     onGoCurriculum = {
                         openSavedCurriculumOrHome()

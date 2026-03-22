@@ -1,7 +1,7 @@
 
 package com.kubosaburo.kikenotsu4.ui.screens
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,23 +14,22 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.kubosaburo.kikenotsu4.R
 import com.kubosaburo.kikenotsu4.data.CurriculumChapter
+import com.kubosaburo.kikenotsu4.data.CurriculumSectionType
 import com.kubosaburo.kikenotsu4.ui.components.CharacterSpeechBubbleView
+import com.kubosaburo.kikenotsu4.ui.components.StudyListChapterStyleCard
+import com.kubosaburo.kikenotsu4.ui.components.studyListScreenBackgroundColor
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
@@ -40,10 +39,14 @@ fun CurriculumHomeScreen(
     contentPadding: PaddingValues,
     chapters: List<CurriculumChapter>,
     onOpenChapter: (String) -> Unit,
+    /** AppRoot の Column 内では weight(1f) を付けて高さを確保すること */
+    modifier: Modifier = Modifier,
 ) {
     LazyColumn(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
+            .fillMaxWidth()
+            .background(studyListScreenBackgroundColor())
             .padding(contentPadding),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -90,10 +93,21 @@ fun CurriculumHomeScreen(
                 }
             }
         } else {
-            items(chapters, key = { it.id }) { ch ->
-                ChapterCard(
+            items(
+                chapters,
+                key = { ch -> "${ch.id}_${ch.description.hashCode()}" },
+            ) { ch ->
+                // 説明が空でも必ず1行は出るようにする（UI経路の切り分け用）
+                val body = ch.description.trim().ifBlank {
+                    ch.sections.firstOrNull { it.type == CurriculumSectionType.TEXT }
+                        ?.title?.trim().orEmpty()
+                }.ifBlank {
+                    "（この章の説明文を表示できません。データまたはアプリの更新をご確認ください。）"
+                }
+                StudyListChapterStyleCard(
                     title = ch.title,
-                    description = ch.description,
+                    description = body,
+                    categoryLabel = ch.categoryLabel,
                     onClick = { onOpenChapter(ch.id) }
                 )
             }
@@ -110,56 +124,6 @@ fun CurriculumHomeScreen(
                 contentAlignment = Alignment.Center
             ) {
                 AdMobBanner()
-            }
-        }
-    }
-}
-
-@Composable
-private fun ChapterCard(
-    title: String,
-    description: String,
-    onClick: () -> Unit,
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        shape = RoundedCornerShape(20.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            Text(
-                text = title,
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            if (description.isNotBlank()) {
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-
-            // 右下の矢印（雰囲気）
-            Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             }
         }
     }

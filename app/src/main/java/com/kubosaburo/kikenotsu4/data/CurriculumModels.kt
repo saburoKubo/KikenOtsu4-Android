@@ -18,10 +18,18 @@ data class CurriculumRoot(
  */
 @Serializable
 data class CurriculumChapter(
+    @SerialName("id")
     val id: String,
+    @SerialName("title")
     val title: String,
+    /** curriculum.json の説明文（「〜を学びましょう」など） */
+    @SerialName("description")
     val description: String = "",
-    val sections: List<CurriculumSection> = emptyList()
+    @SerialName("sections")
+    val sections: List<CurriculumSection> = emptyList(),
+    /** 章タイトル直下のラベル（例:「法令」）。JSON に無ければ「法令」。 */
+    @SerialName("category_label")
+    val categoryLabel: String = "法令",
 )
 
 /**
@@ -48,4 +56,23 @@ object CurriculumSectionType {
     const val TEXT = "text"
     const val QUIZ = "quiz"
     const val MOCK = "mock"
+}
+
+/**
+ * テキスト一覧で、カリキュラム章カードと同じ説明文を出すためのマップ。
+ * 各章の **先頭の text セクション** の [CurriculumSection.refId]（textId）→ その章の [CurriculumChapter.description]。
+ */
+fun textIdToCurriculumChapterDescriptionMap(root: CurriculumRoot?): Map<String, String> {
+    if (root == null) return emptyMap()
+    val out = LinkedHashMap<String, String>()
+    for (ch in root.chapters) {
+        val desc = ch.description.trim()
+        if (desc.isEmpty()) continue
+        val firstText = ch.sections.firstOrNull { it.type == CurriculumSectionType.TEXT } ?: continue
+        val ref = firstText.refId.trim()
+        if (ref.isNotEmpty()) {
+            out[ref] = desc
+        }
+    }
+    return out
 }

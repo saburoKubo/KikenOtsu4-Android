@@ -48,6 +48,8 @@ fun HomeMenuScreen(
     // カリキュラム進捗（null の場合はカードを非表示）
     totalSections: Int? = null,
     completedSections: Int? = null,
+    /** [CurriculumProgressStore.loadLap]。2 以上のとき「○周目」を進捗付近に表示 */
+    curriculumLap: Int = 1,
     // 今日の復習件数（null の場合は 0 扱い）
     todayReviewCount: Int? = null,
     onGoCurriculum: () -> Unit,
@@ -137,6 +139,14 @@ fun HomeMenuScreen(
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold
                             )
+                            if (curriculumLap >= 2) {
+                                Text(
+                                    text = "${curriculumLap}周目",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFFF8A1E)
+                                )
+                            }
                         }
 
                         Column(
