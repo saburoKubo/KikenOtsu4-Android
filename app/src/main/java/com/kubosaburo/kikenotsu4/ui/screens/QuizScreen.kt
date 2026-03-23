@@ -315,7 +315,7 @@ fun QuizScreen(
 
                             // Update local counters (kept for compatibility / future expansion)
                             if (isCorrect) {
-                                correctCount++
+                                correctCount += 1
                             } else {
                                 wrongIds = (wrongIds + q.id).distinct()
                             }
@@ -385,11 +385,11 @@ fun QuizScreen(
 
                 // ✅ 解説（iOS風カード）
                 item {
-                    val explBg = if (dark) scheme.surfaceContainerHigh else Color(0xFFFFF2E8)
-                    val explBorder =
+                    val explanationCardBg = if (dark) scheme.surfaceContainerHigh else Color(0xFFFFF2E8)
+                    val explanationBorder =
                         if (dark) scheme.outline.copy(alpha = 0.45f) else Color(0xFFF2C8A6)
-                    val explAccent = if (dark) Color(0xFF81C784) else Color(0xFF5DBB63)
-                    val explContent = scheme.onSurface
+                    val explanationAccent = if (dark) Color(0xFF81C784) else Color(0xFF5DBB63)
+                    val explanationContentColor = scheme.onSurface
 
                     Card(
                         modifier = Modifier
@@ -397,10 +397,10 @@ fun QuizScreen(
                             .wrapContentHeight(unbounded = true),
                         shape = RoundedCornerShape(24.dp),
                         colors = androidx.compose.material3.CardDefaults.cardColors(
-                            containerColor = explBg,
-                            contentColor = explContent,
+                            containerColor = explanationCardBg,
+                            contentColor = explanationContentColor,
                         ),
-                        border = BorderStroke(1.5.dp, explBorder)
+                        border = BorderStroke(1.5.dp, explanationBorder)
                     ) {
                         Column(
                             modifier = Modifier
@@ -415,11 +415,11 @@ fun QuizScreen(
                                         .width(6.dp)
                                         .height(18.dp)
                                         .clip(RoundedCornerShape(99.dp))
-                                        .background(explAccent)
+                                        .background(explanationAccent)
                                 )
                                 Text(
                                     text = "解説",
-                                    color = explAccent,
+                                    color = explanationAccent,
                                     fontWeight = FontWeight.Bold,
                                     style = MaterialTheme.typography.bodyMedium,
                                     modifier = Modifier.padding(start = 10.dp)
@@ -430,7 +430,7 @@ fun QuizScreen(
                                 text = mdBold(q.explanation),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.SemiBold,
-                                color = explContent,
+                                color = explanationContentColor,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .wrapContentHeight(unbounded = true),
@@ -453,7 +453,7 @@ fun QuizScreen(
                         onClick = {
                             if (isCorrect) {
                                 if (index < questions.lastIndex) {
-                                    index++
+                                    index += 1
                                 } else {
                                     val total = questions.size
                                     val correct = correctCount

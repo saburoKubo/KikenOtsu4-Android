@@ -30,9 +30,7 @@ import com.kubosaburo.kikenotsu4.data.CurriculumSectionType
 import com.kubosaburo.kikenotsu4.ui.components.CharacterSpeechBubbleView
 import com.kubosaburo.kikenotsu4.ui.components.StudyListChapterStyleCard
 import com.kubosaburo.kikenotsu4.ui.components.studyListScreenBackgroundColor
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.AdView
+import com.kubosaburo.kikenotsu4.ui.ads.createStudyBannerAdView
 
 @Composable
 fun CurriculumHomeScreen(
@@ -134,12 +132,8 @@ private fun AdMobBanner(modifier: Modifier = Modifier) {
     AndroidView(
         modifier = modifier.fillMaxWidth(),
         factory = { context ->
-            AdView(context).apply {
-                // テスト用バナー広告ユニットID（本番前に自分のIDへ差し替え）
-                adUnitId = "ca-app-pub-3940256099942544/6300978111"
-                setAdSize(AdSize.BANNER)
-                loadAd(AdRequest.Builder().build())
-            }
+            // テスト用ユニットID（本番前に createStudyBannerAdView の引数で差し替え）
+            createStudyBannerAdView(context)
         }
     )
 }

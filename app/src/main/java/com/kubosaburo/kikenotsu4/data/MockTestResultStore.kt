@@ -4,7 +4,6 @@ package com.kubosaburo.kikenotsu4.data
 import android.content.Context
 import androidx.core.content.edit
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 object MockTestResultStore {
@@ -80,13 +79,6 @@ object MockTestResultStore {
         return runCatching { json.decodeFromString(Result.serializer(), raw) }.getOrNull()
     }
 
-    fun clearLatest(context: Context, mockTestId: String) {
-        val prefs = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        prefs.edit {
-            remove(latestKey(mockTestId))
-        }
-    }
-
     fun recordResult(
         context: Context,
         result: Result,
@@ -151,13 +143,6 @@ object MockTestResultStore {
         val prefs = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val raw = prefs.getString(summaryKey(mockTestId), null) ?: return null
         return runCatching { json.decodeFromString(Summary.serializer(), raw) }.getOrNull()
-    }
-
-    fun clearSummary(context: Context, mockTestId: String) {
-        val prefs = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        prefs.edit {
-            remove(summaryKey(mockTestId))
-        }
     }
 
     fun isOverallPassed(

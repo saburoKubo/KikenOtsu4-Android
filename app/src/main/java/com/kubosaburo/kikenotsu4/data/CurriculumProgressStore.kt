@@ -8,13 +8,11 @@ import android.util.Log
  * カリキュラムの「前回の続き（次に開くセクション）」を保存するストア。
  *
  * - nextSectionId: 次に開くべき sectionId（未開始なら null）
- * - lastOpenedAt: 最後に更新した時刻（デバッグ用）
  */
 object CurriculumProgressStore {
 
     private const val PREFS_NAME = "curriculum_progress"
     private const val KEY_NEXT_SECTION_ID = "next_section_id"
-    private const val KEY_LAST_OPENED_AT = "last_opened_at"
     /** カリキュラムを最後まで通した回数ベースの「周目」。1＝初回プレイ、全完了のたびに +1。 */
     private const val KEY_CURRICULUM_LAP = "curriculum_lap"
 
@@ -38,14 +36,7 @@ object CurriculumProgressStore {
             } else {
                 putString(KEY_NEXT_SECTION_ID, value)
             }
-            putLong(KEY_LAST_OPENED_AT, System.currentTimeMillis())
         }
-    }
-
-    /** デバッグ用：最後に更新した時刻（未保存なら 0） */
-    fun loadLastOpenedAt(context: Context): Long {
-        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        return prefs.getLong(KEY_LAST_OPENED_AT, 0L)
     }
 
     /** 進捗をリセット（最初から）。周回数（[loadLap]）は維持する。 */
@@ -54,7 +45,6 @@ object CurriculumProgressStore {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit {
             remove(KEY_NEXT_SECTION_ID)
-            remove(KEY_LAST_OPENED_AT)
         }
     }
 

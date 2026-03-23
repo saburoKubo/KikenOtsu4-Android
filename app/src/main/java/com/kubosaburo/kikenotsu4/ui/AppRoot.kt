@@ -151,39 +151,11 @@ fun AppRoot() {
     // 無料版の「本日の上限に達しました」ダイアログ
     var showDailyTextLimitDialog by rememberSaveable { mutableStateOf(false) }
 
-    fun fetchDueReviewIds(context: Context, maxCount: Int = Int.MAX_VALUE): List<String> {
-        // ReviewStore (QuizLogStore.kt) stores:
-        // key: "q_<questionId>"
-        // value: "ease|intervalDays|repetition|nextReviewAt|lastReviewedAt"
-        val prefs = context.getSharedPreferences("review_srs", Context.MODE_PRIVATE)
-
-        // Apply the same debug time offset as SettingsScreen (debug_clock)
-        val debugPrefs = context.getSharedPreferences("debug_clock", Context.MODE_PRIVATE)
-        val offsetDays = debugPrefs.getInt("debug_time_offset_days", 0)
-        val now = System.currentTimeMillis() + offsetDays.toLong() * 24L * 60L * 60L * 1000L
-
-        val due = ArrayList<Pair<String, Long>>()
-
-        // `prefs.all` is a Map<String, *> so the key is already String; no casts needed.
-        for ((key, valueAny) in prefs.all) {
-            val raw = valueAny as? String ?: continue
-            if (!key.startsWith("q_")) continue
-
-            // Split by '|': ease|interval|repetition|nextReviewAt|lastReviewedAt
-            val parts = raw.split('|')
-            if (parts.size != 5) continue
-
-            val nextAt = parts[3].toLongOrNull() ?: continue
-            if (nextAt <= now) {
-                val qid = key.removePrefix("q_")
-                due.add(qid to nextAt)
-            }
-        }
-
-        // older due first
-        due.sortBy { it.second }
-        return due.map { it.first }.distinct().take(maxCount)
-    }
+    fun fetchDueReviewIds(
+        @Suppress("UNUSED_PARAMETER") context: Context,
+        maxCount: Int = Int.MAX_VALUE,
+    ): List<String> =
+        quizLogStore.fetchDueQuestionIds(maxCount)
 
     fun mapQuestionIdsToTextId(ids: List<String>, fallbackTextId: String?): String? {
         val safeIds = ids.ifEmpty { return fallbackTextId }
@@ -330,10 +302,10 @@ fun AppRoot() {
 
         // 無料版は「テキスト問題（お祝い到達）」が1日2問まで。
         // その上限を超えるセクション開始はブロックする（ただし今日すでに解いた問題は許可）。
-        if (!proManager.isProEnabled && (sectionType == "text" || sectionType == "quiz")) {
+        if (!proManager.isProEnabled && (sectionType == CurriculumSectionType.TEXT || sectionType == CurriculumSectionType.QUIZ)) {
             val targetTextId: String? = when (sectionType) {
-                "text" -> refId
-                "quiz" -> {
+                CurriculumSectionType.TEXT -> refId
+                CurriculumSectionType.QUIZ -> {
                     val qForGroup = questions.filter { it.groupId == refId }
                     qForGroup.firstOrNull()?.textId
                 }
@@ -354,11 +326,11 @@ fun AppRoot() {
         curriculumCurrentSectionId = sectionId
 
         when (sectionType) {
-            "text" -> {
+            CurriculumSectionType.TEXT -> {
                 // refId is textId like "text_001"
                 selectedTextId = refId
             }
-            "quiz" -> {
+            CurriculumSectionType.QUIZ -> {
                 // refId is groupId like "g067". QuizScreen currently expects a textId,
                 // so we map groupId -> first question's textId and also pass questionIds to limit the quiz.
                 val qForGroup = questions.filter { it.groupId == refId }
@@ -480,7 +452,7 @@ fun AppRoot() {
 
         // ホームから「カリキュラムで学ぶ」に入るときは、quiz セクション保存中でも
         // いきなり問題画面へ飛ばさず、対応するテキスト画面から再開する。
-        if (sec.type == "quiz") {
+        if (sec.type == CurriculumSectionType.QUIZ) {
             val qForGroup = questions.filter { it.groupId == sec.refId }
             val firstQ = qForGroup.firstOrNull()
             if (firstQ != null) {
@@ -848,6 +820,8 @@ fun AppRoot() {
                     onProModeChanged = {
                         proManager.refresh()
                     },
+                    onDebugMarkProPurchased = { proManager.markPurchasedForLocalDebug() },
+                    onDebugClearProPurchased = { proManager.clearPurchasedForLocalDebug() },
                     onLearningDataCleared = {
                         curriculumNextSectionId = CurriculumProgressStore.loadNextSectionId(context)
                         bookmarkedTextIds = bookmarkStore.loadBookmarkedTextIds().toSet()
@@ -1007,7 +981,7 @@ fun AppRoot() {
                             reviewIntroIds,
                             curriculumCurrentSectionId?.let { curSecId ->
                                 val curSec = findCurriculumSection(curSecId)
-                                if (curSec?.type == "text") curSec.refId else null
+                                if (curSec?.type == CurriculumSectionType.TEXT) curSec.refId else null
                             }
                         )
                         activeReviewIds = reviewIntroIds
@@ -1071,7 +1045,7 @@ fun AppRoot() {
                             } else {
                                 // 復習終了後は、問題セクションで中断していた場合でもテキスト画面に戻す
                                 var resumeTextOnly = false
-                                if (nextSec.type == "quiz") {
+                                if (nextSec.type == CurriculumSectionType.QUIZ) {
                                     val qForGroup = questions.filter { it.groupId == nextSec.refId }
                                     val firstQ = qForGroup.firstOrNull()
                                     if (firstQ != null) {

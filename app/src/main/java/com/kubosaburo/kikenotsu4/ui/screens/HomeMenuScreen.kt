@@ -40,9 +40,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.kubosaburo.kikenotsu4.R
 import com.kubosaburo.kikenotsu4.data.StartingPraiseProvider
 import com.kubosaburo.kikenotsu4.ui.components.CharacterSpeechBubbleView
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.AdView
+import com.kubosaburo.kikenotsu4.ui.ads.createStudyBannerAdView
 
 @Composable
 fun HomeMenuScreen(
@@ -50,7 +48,7 @@ fun HomeMenuScreen(
     // カリキュラム進捗（null の場合はカードを非表示）
     totalSections: Int? = null,
     completedSections: Int? = null,
-    /** [CurriculumProgressStore.loadLap]。2 以上のとき「○周目」を進捗付近に表示 */
+    /** [com.kubosaburo.kikenotsu4.data.CurriculumProgressStore.loadLap]。2 以上のとき「○周目」を進捗付近に表示 */
     curriculumLap: Int = 1,
     // 今日の復習件数（null の場合は 0 扱い）
     todayReviewCount: Int? = null,
@@ -246,12 +244,7 @@ fun HomeMenuScreen(
             AndroidView(
                 modifier = Modifier.fillMaxWidth(),
                 factory = { context ->
-                    AdView(context).apply {
-                        // テスト用バナー広告ユニットID（本番前にご自身のIDへ差し替え）
-                        adUnitId = "ca-app-pub-3940256099942544/6300978111"
-                        setAdSize(AdSize.BANNER)
-                        loadAd(AdRequest.Builder().build())
-                    }
+                    createStudyBannerAdView(context)
                 }
             )
         }

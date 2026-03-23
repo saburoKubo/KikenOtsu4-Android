@@ -80,6 +80,10 @@ fun SettingsScreen(
     onProPurchase: () -> Unit = {},
     onProRestore: () -> Unit = {},
     onProModeChanged: (() -> Unit)? = null,
+    /** DEBUG: SharedPreferences の購入フラグを立てる（[DebugProMode.Mode.SYSTEM] 時の挙動確認用） */
+    onDebugMarkProPurchased: () -> Unit = {},
+    /** DEBUG: 購入フラグを消す */
+    onDebugClearProPurchased: () -> Unit = {},
     onLearningDataCleared: (() -> Unit)? = null,
     /** DEBUG 用：AppRoot で本番と同じ FinalCelebration（トップバー・下部ナビ・余白つき）を開く。 */
     onDebugOpenFinalCelebration: () -> Unit = {},
@@ -109,25 +113,6 @@ fun SettingsScreen(
             .padding(horizontal = 16.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Text("設定", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(
-                    "ここに通知・サウンド・学習設定などを追加していきます。",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
 
         LearningEffectsSettingsCard()
 
@@ -159,7 +144,15 @@ fun SettingsScreen(
                     proDebugOverride = newMode
                     DebugProMode.save(context, newMode)
                     onProModeChanged?.invoke()
-                }
+                },
+                onMarkPurchased = {
+                    onDebugMarkProPurchased()
+                    onProModeChanged?.invoke()
+                },
+                onClearPurchased = {
+                    onDebugClearProPurchased()
+                    onProModeChanged?.invoke()
+                },
             )
             DebugFinalCelebrationTestCard(onOpen = onDebugOpenFinalCelebration)
             DebugFinalCelebrationCopyPreviewCard(
@@ -169,11 +162,11 @@ fun SettingsScreen(
                 currentLap = debugCurriculumLap,
                 onBumpLap = {
                     CurriculumProgressStore.debugIncrementLapForPreview(context.applicationContext)
-                    curriculumLapPreviewEpoch++
+                    curriculumLapPreviewEpoch += 1
                 },
                 onResetLap = {
                     CurriculumProgressStore.resetLap(context.applicationContext)
-                    curriculumLapPreviewEpoch++
+                    curriculumLapPreviewEpoch += 1
                 },
             )
         }
@@ -362,9 +355,15 @@ private fun LearningDataSettingsCard(
     val context = LocalContext.current
     var showEraseDialog by remember { mutableStateOf(false) }
 
+    // Compose の delegate への代入がコールバック内だと誤って「Assigned value is never read」になることがある
+    @Suppress("ASSIGNED_VALUE_IS_NEVER_READ")
+    fun setEraseDialogShowing(showing: Boolean) {
+        showEraseDialog = showing
+    }
+
     if (showEraseDialog) {
         AlertDialog(
-            onDismissRequest = { showEraseDialog = false },
+            onDismissRequest = { setEraseDialogShowing(false) },
             title = {
                 Text(
                     text = "学習データを消去しますか？",
@@ -389,7 +388,7 @@ private fun LearningDataSettingsCard(
                 TextButton(
                     onClick = {
                         LearningDataReset.clearAll(context)
-                        showEraseDialog = false
+                        setEraseDialogShowing(false)
                         onLearningDataCleared?.invoke()
                     },
                     colors = ButtonDefaults.textButtonColors(
@@ -400,7 +399,7 @@ private fun LearningDataSettingsCard(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showEraseDialog = false }) {
+                TextButton(onClick = { setEraseDialogShowing(false) }) {
                     Text("キャンセル")
                 }
             }
@@ -443,7 +442,7 @@ private fun LearningDataSettingsCard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             OutlinedButton(
-                onClick = { showEraseDialog = true },
+                onClick = { setEraseDialogShowing(true) },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("学習データを消去")
@@ -586,6 +585,8 @@ private fun ProBullet(text: String) {
 private fun DebugProModeCard(
     currentMode: DebugProMode.Mode,
     onChange: (DebugProMode.Mode) -> Unit,
+    onMarkPurchased: () -> Unit,
+    onClearPurchased: () -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -668,6 +669,33 @@ private fun DebugProModeCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
+
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
+            Text(
+                "購入フラグ（SYSTEM 時のみ実データが効く）",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.SemiBold
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                OutlinedButton(
+                    onClick = onMarkPurchased,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("購入ON", style = MaterialTheme.typography.labelMedium)
+                }
+                OutlinedButton(
+                    onClick = onClearPurchased,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("購入OFF", style = MaterialTheme.typography.labelMedium)
+                }
+            }
         }
     }
 }

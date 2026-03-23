@@ -55,7 +55,7 @@ data class CurriculumSection(
 object CurriculumSectionType {
     const val TEXT = "text"
     const val QUIZ = "quiz"
-    const val MOCK = "mock"
+    // JSON で mock セクションを使うようになったら const val MOCK = "mock" を追加
 }
 
 /**

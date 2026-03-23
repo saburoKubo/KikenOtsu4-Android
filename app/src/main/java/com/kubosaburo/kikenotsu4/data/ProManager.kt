@@ -12,6 +12,7 @@ class ProManager(
 ) {
 
     companion object {
+        /** Google Play に登録する想定の SKU（課金実装時に Billing で使用） */
         const val PRO_PRODUCT_ID = "pro_buy_once"
 
         private const val PREFS = "pro_manager"
@@ -28,13 +29,19 @@ class ProManager(
         private set
 
     /**
-     * Android版はまだ本格課金実装前なので、いったん空配列で持っておく。
-     * 画面側で products を参照しても落ちないようにしておくための受け皿。
+     * 課金実装前の受け皿。現状は [PRO_PRODUCT_ID] のみ。
+     * 将来 Billing で問い合わせる SKU 一覧に差し替える。
      */
-    val products: List<String> = emptyList()
+    val products: List<String> = listOf(PRO_PRODUCT_ID)
 
     fun loadProducts() {
         lastErrorMessage = null
+        // 将来: BillingClient で各 SKU を query。現状は一覧参照のみ。
+        products.forEach { sku ->
+            if (sku != PRO_PRODUCT_ID) {
+                lastErrorMessage = "不明な SKU: $sku"
+            }
+        }
     }
 
     fun updatePurchasedStatus() {
@@ -46,7 +53,7 @@ class ProManager(
         lastErrorMessage = null
         runCatching {
             savePurchasedFlag(true)
-            isProEnabled = resolveIsProEnabled()
+            refresh()
         }.onFailure {
             lastErrorMessage = it.message ?: "Pro購入状態の更新に失敗しました"
         }
@@ -57,7 +64,7 @@ class ProManager(
         isBusy = true
         lastErrorMessage = null
         runCatching {
-            isProEnabled = resolveIsProEnabled()
+            refresh()
         }.onFailure {
             lastErrorMessage = it.message ?: "購入状態の復元に失敗しました"
         }
@@ -65,7 +72,8 @@ class ProManager(
     }
 
     fun refresh() {
-        isProEnabled = resolveIsProEnabled()
+        loadProducts()
+        updatePurchasedStatus()
     }
 
     fun markPurchasedForLocalDebug() {

@@ -19,13 +19,11 @@ class BookmarkStore(context: Context) {
 
     /** ブックマークの付け外し */
     fun toggle(textId: String) {
-        val cur = loadBookmarkedTextIds().toMutableSet()
-        if (cur.contains(textId)) {
-            cur.remove(textId)
+        if (isBookmarked(textId)) {
+            remove(textId)
         } else {
-            cur.add(textId)
+            add(textId)
         }
-        prefs.edit { putStringSet(KEY_TEXT_IDS, cur) }
     }
 
     /** 明示的に追加 */

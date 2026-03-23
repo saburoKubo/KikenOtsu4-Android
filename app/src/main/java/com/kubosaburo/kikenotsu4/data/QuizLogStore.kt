@@ -53,6 +53,13 @@ class QuizLogStore(context: Context) {
             wrongCount = wrongCount
         )
     }
+
+    /**
+     * 復習（SRS）で期限が来ている問題ID。最大 [maxCount] 件。
+     * 日付シミュレーションは [ReviewClock] 経由で反映される。
+     */
+    fun fetchDueQuestionIds(maxCount: Int = Int.MAX_VALUE): List<String> =
+        ReviewStore.fetchDueIds(appContext, maxCount, ReviewClock.nowMillis(appContext))
 }
 
 /**

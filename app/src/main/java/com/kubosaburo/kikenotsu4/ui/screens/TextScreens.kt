@@ -54,9 +54,7 @@ import com.kubosaburo.kikenotsu4.ui.components.CharacterSpeechBubbleView
 import com.kubosaburo.kikenotsu4.ui.components.StudyListChapterStyleCard
 import com.kubosaburo.kikenotsu4.ui.components.studyListScreenBackgroundColor
 import com.kubosaburo.kikenotsu4.ui.parseBoldMarkdown
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.AdSize
-import com.google.android.gms.ads.AdView
+import com.kubosaburo.kikenotsu4.ui.ads.createStudyBannerAdView
 
 @Composable
 fun TextListScreen(
@@ -171,11 +169,7 @@ private fun TextListAdMobBanner(modifier: Modifier = Modifier) {
     AndroidView(
         modifier = modifier.fillMaxWidth(),
         factory = { context ->
-            AdView(context).apply {
-                adUnitId = "ca-app-pub-3940256099942544/6300978111"
-                setAdSize(AdSize.BANNER)
-                loadAd(AdRequest.Builder().build())
-            }
+            createStudyBannerAdView(context)
         }
     )
 }

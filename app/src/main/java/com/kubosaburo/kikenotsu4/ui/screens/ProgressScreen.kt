@@ -17,8 +17,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -36,19 +38,17 @@ fun ProgressScreen(
     quizLogStore: QuizLogStore,
     completedSectionCount: Int = 0,
     totalSectionCount: Int = 0,
-    /** [CurriculumProgressStore.loadLap]。2 以上で「○周目」を全体進捗に表示 */
+    /** [com.kubosaburo.kikenotsu4.data.CurriculumProgressStore.loadLap]。2 以上で「○周目」を全体進捗に表示 */
     curriculumLap: Int = 1,
     contentPadding: PaddingValues = PaddingValues(0.dp),
 ) {
     val context = LocalContext.current
-    val statsState = remember { mutableStateOf(quizLogStore.getStats()) }
+    var stats by remember { mutableStateOf(quizLogStore.getStats()) }
 
     // 画面を開いたタイミングで最新化（超シンプル）
     LaunchedEffect(Unit) {
-        statsState.value = quizLogStore.getStats()
+        stats = quizLogStore.getStats()
     }
-
-    val stats = statsState.value
     val overallProgressValue = if (totalSectionCount > 0) {
         (completedSectionCount.toFloat() / totalSectionCount.toFloat()).coerceIn(0f, 1f)
     } else {

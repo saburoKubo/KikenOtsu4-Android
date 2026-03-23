@@ -3,8 +3,11 @@ package com.kubosaburo.kikenotsu4.ui.screens
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.widget.Toast
+import androidx.core.net.toUri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -39,12 +42,38 @@ import androidx.compose.ui.unit.dp
 import com.kubosaburo.kikenotsu4.BuildConfig
 
 private fun openInBrowser(context: Context, url: String) {
+    val uri = runCatching { url.toUri() }.getOrNull()
+    if (uri == null) {
+        Toast.makeText(context, "URL が不正です", Toast.LENGTH_SHORT).show()
+        return
+    }
+    val viewIntent = Intent(Intent.ACTION_VIEW, uri).apply {
+        addCategory(Intent.CATEGORY_BROWSABLE)
+    }
+    val launchContext = context.applicationContext
+    val canHandle = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        launchContext.packageManager.resolveActivity(
+            viewIntent,
+            PackageManager.ResolveInfoFlags.of(PackageManager.MATCH_DEFAULT_ONLY.toLong()),
+        ) != null
+    } else {
+        @Suppress("DEPRECATION")
+        launchContext.packageManager.resolveActivity(viewIntent, PackageManager.MATCH_DEFAULT_ONLY) != null
+    }
+    if (!canHandle) {
+        Toast.makeText(context, "ブラウザが見つかりません", Toast.LENGTH_SHORT).show()
+        return
+    }
+    val chooser = Intent.createChooser(viewIntent, null)
     runCatching {
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-        if (context !is Activity) {
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (context is Activity) {
+            context.startActivity(chooser)
+        } else {
+            chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            launchContext.startActivity(chooser)
         }
-        context.startActivity(intent)
+    }.onFailure {
+        Toast.makeText(context, "リンクを開けませんでした", Toast.LENGTH_SHORT).show()
     }
 }
 
@@ -58,7 +87,7 @@ private fun openSupportEmail(context: Context) {
             "端末: ${Build.MANUFACTURER} ${Build.MODEL}\n" +
             "OS: Android ${Build.VERSION.RELEASE}"
     )
-    val uri = Uri.parse("mailto:${SupportLegalTexts.SUPPORT_EMAIL}?subject=$subject&body=$body")
+    val uri = "mailto:${SupportLegalTexts.SUPPORT_EMAIL}?subject=$subject&body=$body".toUri()
     runCatching {
         val intent = Intent(Intent.ACTION_SENDTO, uri)
         if (context !is Activity) {
@@ -73,11 +102,15 @@ fun SupportAppInfoSection() {
     val context = LocalContext.current
     var showHowTo by remember { mutableStateOf(false) }
 
+    @Suppress("ASSIGNED_VALUE_IS_NEVER_READ")
+    fun setShowHowTo(show: Boolean) {
+        showHowTo = show
+    }
+
     if (showHowTo) {
-        ScrollableLegalDialog(
-            title = "使い方",
+        HowToUseDialog(
             body = SupportLegalTexts.HOW_TO_USE,
-            onDismiss = { showHowTo = false }
+            onDismiss = { setShowHowTo(false) }
         )
     }
 
@@ -113,7 +146,7 @@ fun SupportAppInfoSection() {
                 )
             }
 
-            SupportInfoRow(label = "使い方", onClick = { showHowTo = true })
+            SupportInfoRow(label = "使い方", onClick = { setShowHowTo(true) })
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             SupportInfoRow(label = "公式サイト") {
                 openInBrowser(context, SupportLegalTexts.OFFICIAL_SITE_URL)
@@ -178,14 +211,13 @@ private fun SupportInfoRow(
 }
 
 @Composable
-private fun ScrollableLegalDialog(
-    title: String,
+private fun HowToUseDialog(
     body: String,
     onDismiss: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(title, fontWeight = FontWeight.Bold) },
+        title = { Text("使い方", fontWeight = FontWeight.Bold) },
         text = {
             Column(
                 modifier = Modifier

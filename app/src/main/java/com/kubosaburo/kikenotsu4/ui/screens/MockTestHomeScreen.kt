@@ -51,18 +51,6 @@ fun MockTestHomeScreen(
         payload?.mockTests?.firstOrNull { it.id.trim().lowercase() == "mock_random" }
     }
 
-    fun sectionSummary(test: MockTestDefinition?): String {
-        if (test == null) return ""
-        val law = test.countFor("法令")
-        val physics = test.countFor("物理化学")
-        val nature = test.countFor("性質・消火")
-        val total = law + physics + nature
-        return "法令${law}問・物理化学${physics}問・性質・消火${nature}問（計${total}問）"
-    }
-
-    fun descriptionOrFallback(test: MockTestDefinition?, fallback: String): String {
-        return test?.description?.takeIf { it.isNotBlank() } ?: fallback
-    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -103,7 +91,7 @@ fun MockTestHomeScreen(
                     Text(
                         text = buildString {
                             append(
-                                descriptionOrFallback(
+                                mockTestDescriptionOrFallback(
                                     trialTest,
                                     "固定問題で模擬テストを体験できる枠です。まずはここから始められるようにします。"
                                 )
@@ -112,6 +100,14 @@ fun MockTestHomeScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    val trialSummary = mockTestSectionSummary(trialTest)
+                    if (trialSummary.isNotBlank()) {
+                        Text(
+                            text = trialSummary,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                     if (!latestTrialResultText.isNullOrBlank() || !latestTrialDateText.isNullOrBlank()) {
                         Card(
                             shape = RoundedCornerShape(14.dp),
@@ -184,7 +180,7 @@ fun MockTestHomeScreen(
                 Text(
                     text = buildString {
                         append(
-                            descriptionOrFallback(
+                            mockTestDescriptionOrFallback(
                                 randomTest,
                                 "ランダム出題・結果保存・合格判定はこのあと順番に入れていきます。"
                             )
@@ -193,6 +189,14 @@ fun MockTestHomeScreen(
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
+                val randomSummary = mockTestSectionSummary(randomTest)
+                if (randomSummary.isNotBlank()) {
+                    Text(
+                        text = randomSummary,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 if (!latestRandomResultText.isNullOrBlank() || !latestRandomDateText.isNullOrBlank()) {
                     Card(
                         shape = RoundedCornerShape(14.dp),
@@ -244,3 +248,15 @@ fun MockTestHomeScreen(
 
     }
 }
+
+private fun mockTestSectionSummary(test: MockTestDefinition?): String {
+    if (test == null) return ""
+    val law = test.countFor("法令")
+    val physics = test.countFor("物理化学")
+    val nature = test.countFor("性質・消火")
+    val total = law + physics + nature
+    return "法令${law}問・物理化学${physics}問・性質・消火${nature}問（計${total}問）"
+}
+
+private fun mockTestDescriptionOrFallback(test: MockTestDefinition?, fallback: String): String =
+    test?.description?.takeIf { it.isNotBlank() } ?: fallback

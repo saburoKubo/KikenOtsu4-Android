@@ -71,7 +71,7 @@ fun finalCelebrationCopyForCurriculumLap(lap: Int): Pair<String, String> {
 /**
  * Final celebration shown when the user completes ALL curriculum texts + quizzes.
  *
- * - Two-frame character animation (uses existing nicosme assets)
+ * - Two-frame character animation（`R.drawable.nicos_final1` / `nicos_final2`）
  * - Confetti overlay
  * - 最初のテキストから学び直す / ホームへ
  */

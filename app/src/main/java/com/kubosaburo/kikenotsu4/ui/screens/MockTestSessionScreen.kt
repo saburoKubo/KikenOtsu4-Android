@@ -86,11 +86,10 @@ fun MockTestSessionScreen(
         runCatching { loadQuestionsById(context) }.getOrDefault(emptyMap())
     }
 
-    val sessionQuestionIds = remember(mockTest, allQuestionsById, isPro) {
+    val sessionQuestionIds = remember(mockTest, allQuestionsById) {
         buildSessionQuestionIds(
             mockTest = mockTest,
             allQuestionsById = allQuestionsById,
-            isPro = isPro
         )
     }
 
@@ -511,15 +510,20 @@ private fun loadQuestionsById(context: android.content.Context): Map<String, Moc
 private fun buildSessionQuestionIds(
     mockTest: MockTestDefinition?,
     allQuestionsById: Map<String, MockSessionQuestion>,
-    isPro: Boolean
 ): List<String> {
     if (mockTest == null) return emptyList()
 
-    if (!isPro && mockTest.questionIds.isNotEmpty()) {
+    // mock_tests.json の mode: "fixed" — question_ids 順で出題
+    if (mockTest.isFixed() && mockTest.questionIds.isNotEmpty()) {
         return mockTest.questionIds.filter { allQuestionsById.containsKey(it) }
     }
 
     if (mockTest.sections.isEmpty()) return emptyList()
+
+    // mode: "random" または question_ids が空でセクションのみ — 範囲から毎回シャッフル抽出
+    if (!mockTest.isRandom() && mockTest.questionIds.isNotEmpty()) {
+        return mockTest.questionIds.filter { allQuestionsById.containsKey(it) }
+    }
 
     val random = Random(System.currentTimeMillis())
     val allQuestions = allQuestionsById.values.toList()
