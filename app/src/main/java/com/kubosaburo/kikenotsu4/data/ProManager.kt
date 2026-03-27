@@ -1,6 +1,7 @@
 package com.kubosaburo.kikenotsu4.data
 
 import android.content.Context
+import android.content.pm.ApplicationInfo
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -87,12 +88,19 @@ class ProManager(
     }
 
     private fun resolveIsProEnabled(): Boolean {
-        return when (DebugProMode.load(context)) {
+        // release（debuggable=false）ではデバッグ UI が出ないため、
+        // 過去にデバッグ APK で保存した FORCE_* が残っていても無視する。
+        val mode =
+            if (isDebuggableBuild()) DebugProMode.load(context) else DebugProMode.Mode.SYSTEM
+        return when (mode) {
             DebugProMode.Mode.FORCE_FREE -> false
             DebugProMode.Mode.FORCE_PRO -> true
             DebugProMode.Mode.SYSTEM -> loadPurchasedFlag()
         }
     }
+
+    private fun isDebuggableBuild(): Boolean =
+        (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
 
     private fun loadPurchasedFlag(): Boolean {
         val prefs = context.applicationContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

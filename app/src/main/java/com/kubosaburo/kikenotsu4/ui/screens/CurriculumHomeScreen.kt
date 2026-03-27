@@ -39,6 +39,8 @@ fun CurriculumHomeScreen(
     onOpenChapter: (String) -> Unit,
     /** AppRoot の Column 内では weight(1f) を付けて高さを確保すること */
     modifier: Modifier = Modifier,
+    /** false のとき一覧下部のバナー広告を出さない */
+    showBannerAd: Boolean = true,
 ) {
     LazyColumn(
         modifier = modifier
@@ -113,15 +115,16 @@ fun CurriculumHomeScreen(
 
         item { Spacer(Modifier.height(20.dp)) }
 
-        // 画面下部のバナー広告
-        item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                AdMobBanner()
+        if (showBannerAd) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    AdMobBanner()
+                }
             }
         }
     }

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.KikenOtsu4" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- XML スタイル名は短い名前にし、IDE スペルチェックの誤検知を避ける（Compose 側の Theme は Kotlin で別定義）。 -->
+    <style name="Theme.App" parent="android:Theme.Material.Light.NoActionBar" />
 </resources>

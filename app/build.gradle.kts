@@ -54,13 +54,13 @@ dependencies {
     implementation(libs.androidx.compose.material3)
 
     // Google Mobile Ads (AdMob)
-    implementation("com.google.android.gms:play-services-ads:23.3.0")
+    implementation(libs.google.mobile.ads)
 
     // 視聴学習リマインド（周期通知）
-    implementation("androidx.work:work-runtime-ktx:2.9.1")
+    implementation(libs.androidx.workmanager.runtime)
 
-    // Material Icons (extended) for MenuBook / School / Assignment etc.
-    implementation("androidx.compose.material:material-icons-extended")
+    // Material Icons (extended) for MenuBook / School / Assignment etc.（バージョンは compose BOM）
+    implementation(libs.androidx.compose.material3.icons.extended)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- AdMob などのネットワーク広告に必要な権限 -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -34,7 +33,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.KikenOtsu4">
+        android:theme="@style/Theme.App">
 
         <!-- AdMob App ID（テスト用。リリース前にご自身のIDへ変更してください） -->
         <meta-data
@@ -43,8 +42,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
-            android:theme="@style/Theme.KikenOtsu4">
+            android:theme="@style/Theme.App">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

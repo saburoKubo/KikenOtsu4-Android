@@ -61,11 +61,13 @@ fun TextListScreen(
     items: List<TextItem>,
     contentPadding: PaddingValues,
     onOpen: (String) -> Unit,
+    /** AppRoot の Column 内では weight(1f) を付ける */
+    modifier: Modifier = Modifier,
     isEnabled: (String) -> Boolean = { true },
     /** カリキュラム章と同じ説明（curriculum.json の章 description）。textId → 文言 */
     curriculumDescriptionsByTextId: Map<String, String> = emptyMap(),
-    /** AppRoot の Column 内では weight(1f) を付ける */
-    modifier: Modifier = Modifier,
+    /** false のとき一覧下部のバナー広告を出さない */
+    showBannerAd: Boolean = true,
 ) {
     // CurriculumHomeScreen と同系統のリスト UI（吹き出し・カード・余白・下部バナー）
     LazyColumn(
@@ -151,14 +153,16 @@ fun TextListScreen(
 
         item { Spacer(Modifier.height(20.dp)) }
 
-        item {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                TextListAdMobBanner()
+        if (showBannerAd) {
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    TextListAdMobBanner()
+                }
             }
         }
     }

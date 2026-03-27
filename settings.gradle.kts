@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage") // dependencyResolutionManagement 周りは Gradle が @Incubating のまま（推奨設定）
+
 pluginManagement {
     repositories {
         google {

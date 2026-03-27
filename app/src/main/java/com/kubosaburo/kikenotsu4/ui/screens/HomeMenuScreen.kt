@@ -52,6 +52,8 @@ fun HomeMenuScreen(
     curriculumLap: Int = 1,
     // 今日の復習件数（null の場合は 0 扱い）
     todayReviewCount: Int? = null,
+    /** false のとき下部バナー広告を出さない（有料版・デバッグ強制 Pro など） */
+    showBannerAd: Boolean = true,
     onGoCurriculum: () -> Unit,
     onGoFreeStudy: () -> Unit,
     onGoMock: () -> Unit,
@@ -229,24 +231,26 @@ fun HomeMenuScreen(
 
         Spacer(modifier = Modifier.size(6.dp))
 
-        // ホーム画面下部のバナー広告（領域が分かるように背景付き）
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    if (dark) MaterialTheme.colorScheme.surfaceContainerHighest
-                    else Color(0xFFE0E0E0),
-                    RoundedCornerShape(12.dp)
+        if (showBannerAd) {
+            // ホーム画面下部のバナー広告（領域が分かるように背景付き）
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        if (dark) MaterialTheme.colorScheme.surfaceContainerHighest
+                        else Color(0xFFE0E0E0),
+                        RoundedCornerShape(12.dp)
+                    )
+                    .padding(vertical = 4.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                AndroidView(
+                    modifier = Modifier.fillMaxWidth(),
+                    factory = { context ->
+                        createStudyBannerAdView(context)
+                    }
                 )
-                .padding(vertical = 4.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            AndroidView(
-                modifier = Modifier.fillMaxWidth(),
-                factory = { context ->
-                    createStudyBannerAdView(context)
-                }
-            )
+            }
         }
     }
 }

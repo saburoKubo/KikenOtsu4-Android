@@ -944,6 +944,7 @@ fun AppRoot() {
                     completedSections = completedSectionCount(),
                     curriculumLap = CurriculumProgressStore.loadLap(context),
                     todayReviewCount = fetchDueReviewIds(context).size,
+                    showBannerAd = !proManager.isProEnabled,
                     onGoCurriculum = {
                         forceShowHomeRoot = false
                         openSavedCurriculumOrHome()
@@ -1405,6 +1406,7 @@ fun AppRoot() {
                                     .fillMaxWidth(),
                                 items = texts,
                                 contentPadding = PaddingValues(0.dp),
+                                showBannerAd = !proManager.isProEnabled,
                                 curriculumDescriptionsByTextId = curriculumDescByTextId,
                                 isEnabled = { tid -> !isFreeLimitReached || completedTodayTextIds.contains(tid) },
                                 onOpen = { tid: String ->
@@ -1458,6 +1460,7 @@ fun AppRoot() {
                             .weight(1f)
                             .fillMaxWidth(),
                         contentPadding = PaddingValues(0.dp),
+                        showBannerAd = !proManager.isProEnabled,
                         chapters = curriculum?.chapters ?: emptyList(),
                         onOpenChapter = { chapterId ->
                             curriculumTextOpenedFromResume = false
@@ -1488,6 +1491,7 @@ fun AppRoot() {
                     completedSections = completedSectionCount(),
                     curriculumLap = CurriculumProgressStore.loadLap(context),
                     todayReviewCount = fetchDueReviewIds(context).size,
+                    showBannerAd = !proManager.isProEnabled,
                     onGoCurriculum = {
                         openSavedCurriculumOrHome()
                     },

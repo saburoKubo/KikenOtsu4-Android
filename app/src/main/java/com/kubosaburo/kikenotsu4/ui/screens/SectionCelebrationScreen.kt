@@ -181,7 +181,7 @@ private fun CelebrationCharacter(size: Dp) {
 @Composable
 private fun ConfettiOverlay(
     modifier: Modifier = Modifier,
-    intensity: Float = 1.2f,
+    intensity: Float = 1.45f,
 ) {
     // NOTE: 本格的な物理はやらず、見た目優先の軽量実装
     val colors = remember {
@@ -194,15 +194,16 @@ private fun ConfettiOverlay(
         )
     }
 
-    // 粒数を増やして密度アップ
-    val particleCount = (90 * intensity).coerceIn(30f, 180f).toInt()
+    // 粒数（多め）。端末負荷は Canvas の drawRect のみなので上限はやや高めにしてよい
+    val particleCount = (118 * intensity).coerceIn(48f, 260f).toInt()
     val particles = remember {
         List(particleCount) {
             ConfettiParticle(
                 x = Random.nextFloat(),
                 y = -Random.nextFloat(),
                 speed = 0.25f + Random.nextFloat() * 0.75f,
-                size = 16f + Random.nextFloat() * 18f,
+                // 画面ピクセル。以前は 16〜34 程度 → ひとまわり大きく（約 28〜62）
+                size = 28f + Random.nextFloat() * 34f,
                 color = colors.random()
             )
         }
