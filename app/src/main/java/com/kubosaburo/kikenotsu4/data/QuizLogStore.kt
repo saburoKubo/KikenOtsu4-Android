@@ -2,6 +2,8 @@ package com.kubosaburo.kikenotsu4.data
 
 import android.content.Context
 import androidx.core.content.edit
+import java.time.Instant
+import java.time.ZoneId
 
 // 進捗表示用の集計
 data class QuizStats(
@@ -152,13 +154,14 @@ private object ReviewStore {
 
     // --- SM-2 (simplified) ---
     private fun sm2Update(prev: State, quality: Int, now: Long): State {
+        val zone = ZoneId.systemDefault()
         // ease factor update (SM-2)
         val q = quality.coerceIn(0, 5)
         val newEase = (prev.ease + (0.1 - (5 - q) * (0.08 + (5 - q) * 0.02))).coerceAtLeast(1.3)
 
         return if (q < 3) {
-            // 不正解：やり直し扱い（次回は短め）
-            val nextAt = now + daysToMillis(1)
+            // 不正解：やり直し扱い（次回は「翌日 0:00」以降＝カレンダー日ベース）
+            val nextAt = nextReviewStartOfLocalDayAfter(now, 1, zone)
             State(
                 ease = newEase,
                 intervalDays = 1,
@@ -172,7 +175,9 @@ private object ReviewStore {
                 1 -> 6
                 else -> kotlin.math.round(prev.intervalDays * newEase).toInt().coerceAtLeast(1)
             }
-            val nextAt = now + daysToMillis(nextInterval)
+            // 正解：間隔 N 日も「解答した日のローカル日付から N 日後の 0:00」に揃える。
+            // now + 24h だと前日夕方の解答が翌日昼まで期限未到来になり、「2日目の朝に復習が出ない」になる。
+            val nextAt = nextReviewStartOfLocalDayAfter(now, nextInterval, zone)
             State(
                 ease = newEase,
                 intervalDays = nextInterval,
@@ -183,7 +188,16 @@ private object ReviewStore {
         }
     }
 
-    private fun daysToMillis(days: Int): Long = days.toLong() * 24L * 60L * 60L * 1000L
+    /**
+     * [now] が属するローカル日付から [intervalDays] 日後の日の 0:00（そのタイムゾーン）を epoch millis で返す。
+     * 例: 3/1 22:00 に解答・interval=1 → 3/2 0:00（同日中に「翌日朝」から復習対象になる）
+     */
+    private fun nextReviewStartOfLocalDayAfter(now: Long, intervalDays: Int, zone: ZoneId): Long {
+        val days = intervalDays.coerceAtLeast(1)
+        val answerDay = Instant.ofEpochMilli(now).atZone(zone).toLocalDate()
+        val dueDay = answerDay.plusDays(days.toLong())
+        return dueDay.atStartOfDay(zone).toInstant().toEpochMilli()
+    }
 
     // --- Encoding ---
     // 保存形式: ease|intervalDays|repetition|nextReviewAt|lastReviewedAt

@@ -5,6 +5,7 @@ package com.kubosaburo.kikenotsu4.ui.screens
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
@@ -26,9 +27,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -44,6 +47,12 @@ import com.kubosaburo.kikenotsu4.R
 import com.kubosaburo.kikenotsu4.data.LearningEffectSound
 import kotlinx.coroutines.delay
 import kotlin.random.Random
+
+/** 以前の tween 1 周分と同じ平均速度に合わせる（無限 Restart で time が 0 に戻ると見た目が切り替わるのを避けるため、経過秒は途切れさせない） */
+private const val ConfettiCycleSeconds = 2.8f
+
+private const val ConfettiFullVisibleMillis = 5_200L
+private const val ConfettiFadeOutMillis = 2_800
 
 /**
  * iOS の SectionCelebrationView 相当。
@@ -70,7 +79,17 @@ fun SectionCelebrationScreen(
     val context = LocalContext.current
 
     var showConfetti by remember { mutableStateOf(false) }
+    var confettiFadeOut by remember { mutableStateOf(false) }
     var hasAppeared by remember { mutableStateOf(false) }
+
+    val confettiAlpha by animateFloatAsState(
+        targetValue = if (confettiFadeOut) 0f else 1f,
+        animationSpec = tween(
+            durationMillis = ConfettiFadeOutMillis,
+            easing = LinearEasing
+        ),
+        label = "confettiAlpha"
+    )
 
     // onAppear 相当
     LaunchedEffect(Unit) {
@@ -88,8 +107,10 @@ fun SectionCelebrationScreen(
             onCompleteSectionIfNeeded?.invoke()
         }
 
-        // もう少し長めに見せる
-        delay(4_500)
+        // しばらく通常表示のあと、ゆっくり透明化（落下は続けたまま）してからレイヤーを外す
+        delay(ConfettiFullVisibleMillis)
+        confettiFadeOut = true
+        delay(ConfettiFadeOutMillis.toLong())
         showConfetti = false
     }
 
@@ -134,7 +155,9 @@ fun SectionCelebrationScreen(
 
         if (showConfetti) {
             ConfettiOverlay(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .alpha(confettiAlpha)
             )
         }
     }
@@ -201,7 +224,8 @@ private fun ConfettiOverlay(
             ConfettiParticle(
                 x = Random.nextFloat(),
                 y = -Random.nextFloat(),
-                speed = 0.25f + Random.nextFloat() * 0.75f,
+                // 小さいほど縦方向の移動がゆるやか（アニメ周期と合わせて調整）
+                speed = 0.12f + Random.nextFloat() * 0.42f,
                 // 画面ピクセル。以前は 16〜34 程度 → ひとまわり大きく（約 28〜62）
                 size = 28f + Random.nextFloat() * 34f,
                 color = colors.random()
@@ -209,25 +233,26 @@ private fun ConfettiOverlay(
         }
     }
 
-    val t = rememberInfiniteTransition(label = "confetti")
-    val time by t.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1_500, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "time"
-    )
+    var elapsedSec by remember { mutableFloatStateOf(0f) }
+    LaunchedEffect(Unit) {
+        var startNs = 0L
+        while (true) {
+            withFrameNanos { frameNs ->
+                if (startNs == 0L) startNs = frameNs
+                elapsedSec = (frameNs - startNs) / 1_000_000_000f
+            }
+        }
+    }
 
     androidx.compose.foundation.Canvas(modifier = modifier) {
         val w = size.width
         val h = size.height
 
         for ((idx, p) in particles.withIndex()) {
-            // time を使って下方向に流す（粒ごとのスピード/開始位置）
-            val yy = ((p.y + time * p.speed + idx * 0.02f) % 1.2f) * h
-            val xx = p.x * w + kotlin.math.sin((time * 6f + idx) * 0.7f) * (10f + p.size)
+            // 0→1→0 の無限アニメは毎周「パッ」と切り替わるので、単調増加の経過秒で位相を進める
+            val yy = ((p.y + elapsedSec * p.speed / ConfettiCycleSeconds + idx * 0.02f) % 1.2f) * h
+            val xx = p.x * w +
+                kotlin.math.sin((elapsedSec * 3.2f / ConfettiCycleSeconds + idx) * 0.7f) * (10f + p.size)
 
             drawRect(
                 color = p.color,

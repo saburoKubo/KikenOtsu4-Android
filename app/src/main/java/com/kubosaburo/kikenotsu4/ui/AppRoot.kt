@@ -8,7 +8,9 @@ import com.kubosaburo.kikenotsu4.data.MockTestResultStore
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import android.app.Activity
 import android.content.Context
+import androidx.activity.compose.BackHandler
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.foundation.background
@@ -237,7 +239,13 @@ fun AppRoot() {
         val allSections = flattenedCurriculumSections()
         if (allSections.isEmpty()) return 0
 
-        val nextId = curriculumNextSectionId ?: return allSections.size
+        val nextId = curriculumNextSectionId
+        if (nextId == null) {
+            // 続き ID が無い状態は「未着手」と「全セクション完了後（clear 済み）」の両方あり得る。
+            // 初回インストールは lap 既定値 1 のままなので未着手 → 0。1 周以上完了済みは lap が 2 以上。
+            val lap = CurriculumProgressStore.loadLap(context)
+            return if (lap <= 1) 0 else allSections.size
+        }
 
         val nextIndex = allSections.indexOfFirst { it.id == nextId }
         return if (nextIndex >= 0) nextIndex else 0
@@ -271,6 +279,7 @@ fun AppRoot() {
     }
 
     fun loadSectionInterstitialIfNeeded() {
+        if (proManager.isProEnabled) return
         if (sectionInterstitialAd != null || isLoadingSectionInterstitial) return
 
         isLoadingSectionInterstitial = true
@@ -471,6 +480,18 @@ fun AppRoot() {
         }
     }
 
+    /**
+     * カリキュラムでクイズ画面からテキストへ戻したとき、current/next がクイズ ID のまま残ると
+     * 「問題へ」で [findCurriculumSection] がクイズを text 扱いし、next が次章になってしまう。テキストセクションに戻す。
+     */
+    fun restoreCurriculumPointersToTextSection(textId: String) {
+        if (homeMode != HomeMode.CURRICULUM) return
+        val textSec = findTextSectionByRefId(textId) ?: return
+        curriculumCurrentSectionId = textSec.id
+        curriculumNextSectionId = textSec.id
+        CurriculumProgressStore.saveNextSectionId(context, textSec.id)
+    }
+
     fun closeTextDetailToPreviousFlow() {
         selectedTextId = null
         quizTextId = null
@@ -501,6 +522,122 @@ fun AppRoot() {
         val sub = if (current > 0) "$current / $total" else "- / $total"
         return "テキスト" to sub
     }
+
+    fun handleSystemBack() {
+        val activity = context as? Activity
+        when {
+            showDailyTextLimitDialog -> showDailyTextLimitDialog = false
+            showNoTodayReviewDialog -> showNoTodayReviewDialog = false
+            showFinalCelebration -> {
+                debugFinalCelebrationLapOverride = 0
+                showFinalCelebration = false
+                resetToHomeRoot()
+            }
+            showMockTestSession -> {
+                proManager.refresh()
+                showMockTestSession = false
+                showMockTestHome = true
+                forceShowHomeRoot = false
+                selectedTab = BottomTab.HOME
+                homeMode = HomeMode.MOCK
+                freeStudyMode = FreeStudyMode.HOME
+                selectedTextId = null
+                quizTextId = null
+                quizQuestionIds = emptyList()
+                celebrationMessage = null
+                celebrationTextId = null
+            }
+            showReviewCompletion -> {
+                showReviewCompletion = false
+                resetToHomeRoot()
+            }
+            showReviewIntro && reviewIntroIds.isNotEmpty() -> {
+                showReviewIntro = false
+                reviewIntroIds = emptyList()
+                activeReviewIds = emptyList()
+                isAutoReview = false
+                if (isFreeStudyTodayReview) {
+                    isFreeStudyTodayReview = false
+                    selectedTab = BottomTab.HOME
+                    homeMode = HomeMode.FREE_STUDY
+                    freeStudyMode = FreeStudyMode.HOME
+                }
+            }
+            celebrationMessage != null && celebrationTextId != null -> {
+                val tid = celebrationTextId!!
+                selectedTextId = tid
+                celebrationMessage = null
+                celebrationTextId = null
+                celebrationIsCurriculum = false
+            }
+            quizTextId != null -> {
+                val tid = quizTextId!!
+                if (isAutoReview) {
+                    quizTextId = null
+                    quizQuestionIds = emptyList()
+                    val ids = activeReviewIds.ifEmpty {
+                        fetchDueReviewIds(context)
+                    }
+                    reviewIntroIds = ids
+                    showReviewIntro = ids.isNotEmpty()
+                    isAutoReview = false
+                } else {
+                    restoreCurriculumPointersToTextSection(tid)
+                    selectedTextId = tid
+                    quizTextId = null
+                    quizQuestionIds = emptyList()
+                }
+            }
+            selected != null -> closeTextDetailToPreviousFlow()
+            selectedTab == BottomTab.SETTINGS -> {
+                forceShowHomeRoot = false
+                selectedTab = BottomTab.HOME
+            }
+            selectedTab == BottomTab.PROGRESS -> {
+                forceShowHomeRoot = false
+                selectedTab = BottomTab.HOME
+            }
+            homeMode == HomeMode.FREE_STUDY && freeStudyMode != FreeStudyMode.HOME -> {
+                freeStudyMode = FreeStudyMode.HOME
+            }
+            homeMode == HomeMode.FREE_STUDY -> {
+                homeMode = HomeMode.MENU
+                freeStudyMode = FreeStudyMode.HOME
+                selectedTab = BottomTab.HOME
+                forceShowHomeRoot = false
+            }
+            homeMode == HomeMode.CURRICULUM -> {
+                homeMode = HomeMode.MENU
+                freeStudyMode = FreeStudyMode.HOME
+                selectedTextId = null
+                quizTextId = null
+                quizQuestionIds = emptyList()
+                curriculumError = null
+            }
+            showMockTestHome -> {
+                showMockTestHome = false
+                homeMode = HomeMode.MENU
+                freeStudyMode = FreeStudyMode.HOME
+                selectedTab = BottomTab.HOME
+                forceShowHomeRoot = false
+            }
+            homeMode == HomeMode.MOCK -> {
+                homeMode = HomeMode.MENU
+                freeStudyMode = FreeStudyMode.HOME
+                selectedTab = BottomTab.HOME
+                forceShowHomeRoot = false
+                showMockTestSession = false
+                showMockTestHome = false
+            }
+            error != null -> {
+                error = null
+                resetToHomeRoot()
+            }
+            else -> activity?.moveTaskToBack(true)
+        }
+    }
+
+    BackHandler { handleSystemBack() }
 
     Scaffold(
         topBar = {
@@ -585,6 +722,7 @@ fun AppRoot() {
                                         isAutoReview = false
                                     } else {
                                         // ✅ 通常クイズ：テキストへ戻る
+                                        restoreCurriculumPointersToTextSection(tid)
                                         selectedTextId = tid
                                         quizTextId = null
                                         quizQuestionIds = emptyList()
@@ -953,6 +1091,8 @@ fun AppRoot() {
                         forceShowHomeRoot = false
                         homeMode = HomeMode.FREE_STUDY
                         freeStudyMode = FreeStudyMode.HOME
+                        // カリキュラムの「現在地」は自分で学ぶとは無関係。残るとクイズ完了時に誤って次セクションへ進む。
+                        curriculumCurrentSectionId = null
                     },
                     onGoMock = {
                         proManager.refresh()
@@ -1113,11 +1253,15 @@ fun AppRoot() {
                         celebrationTextId = null
                         curriculumError = null
 
-                        // まず広告を表示（ロード済みなら）
-                        sectionInterstitialAd?.let { ad ->
-                            (context as? android.app.Activity)?.let { activity ->
-                                ad.show(activity)
+                        // 有料版はバナー同様インタースティシャルも出さない
+                        if (!proManager.isProEnabled) {
+                            sectionInterstitialAd?.let { ad ->
+                                (context as? android.app.Activity)?.let { activity ->
+                                    ad.show(activity)
+                                }
+                                sectionInterstitialAd = null
                             }
+                        } else {
                             sectionInterstitialAd = null
                         }
 
@@ -1178,6 +1322,9 @@ fun AppRoot() {
                     allQuestions = questions,
                     contentPadding = innerPadding,
                     onBack = {
+                        if (!isAutoReview) {
+                            restoreCurriculumPointersToTextSection(tid)
+                        }
                         selectedTextId = tid
                         quizTextId = null
                         quizQuestionIds = emptyList()
@@ -1193,10 +1340,10 @@ fun AppRoot() {
 
                         // ✅ capture state at the exact moment the quiz finishes
                         val curHomeMode = homeMode
-                        val curSection = curriculumCurrentSectionId
 
-                        // homeMode は Quiz 表示中でも他導線で変化しうるので、進捗ストアの状態も併用して判定
-                        val isCurriculumNow = (curHomeMode == HomeMode.CURRICULUM) || (curSection != null)
+                        // 自分で学ぶ（FREE_STUDY）では curriculumCurrentSectionId が前回カリキュラムのまま残っていても
+                        // カリキュラム進行にしてはいけない。カリキュラムかどうかは homeMode で判定する。
+                        val isCurriculumNow = curHomeMode == HomeMode.CURRICULUM
 
                         if (isCurriculumNow) {
                             if (isAutoReview) {
@@ -1266,8 +1413,7 @@ fun AppRoot() {
                             // 通常クイズ（カリキュラムの quiz セクションなど）で
                             // questionIds 経由の完了時も、最後は祝画面へ進める。
                             val curHomeMode = homeMode
-                            val curSection = curriculumCurrentSectionId
-                            val isCurriculumNow = (curHomeMode == HomeMode.CURRICULUM) || (curSection != null)
+                            val isCurriculumNow = curHomeMode == HomeMode.CURRICULUM
 
                             if (isCurriculumNow) {
                                 advanceCurriculumFromCurrentSection()
@@ -1498,6 +1644,7 @@ fun AppRoot() {
                     onGoFreeStudy = {
                         homeMode = HomeMode.FREE_STUDY
                         freeStudyMode = FreeStudyMode.HOME
+                        curriculumCurrentSectionId = null
                     },
                     onGoMock = {
                         proManager.refresh()
