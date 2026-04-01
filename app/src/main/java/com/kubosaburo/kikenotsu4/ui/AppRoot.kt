@@ -658,10 +658,11 @@ fun AppRoot() {
                                 showFinalCelebration -> "おめでとう！"
                                 forceShowHomeRoot -> "ホーム"
                                 celebrationMessage != null -> "お疲れさま！"
-                                quizTextId != null && isAutoReview -> "復習問題"
-                                quizTextId != null -> "クイズ"
+                                // クイズ画面はバックグラウンドに残り得るが、進捗/設定タブのときはそのタイトルを優先する
                                 selectedTab == BottomTab.PROGRESS -> "進捗"
                                 selectedTab == BottomTab.SETTINGS -> "設定"
+                                quizTextId != null && isAutoReview -> "復習問題"
+                                quizTextId != null -> "クイズ"
                                 homeMode == HomeMode.MENU -> "ホーム"
                                 homeMode == HomeMode.CURRICULUM -> "カリキュラム"
                                 homeMode == HomeMode.MOCK -> "模擬テスト"
@@ -702,7 +703,7 @@ fun AppRoot() {
                             }
                         }
 
-                        quizTextId != null -> {
+                        quizTextId != null && selectedTab == BottomTab.HOME -> {
                             val tid = quizTextId!!
                             IconButton(
                                 onClick = {
