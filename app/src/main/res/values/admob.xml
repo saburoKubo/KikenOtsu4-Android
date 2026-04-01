@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      AdMob: アプリ ID と広告ユニットは「同じ AdMob アプリ」で作ったものをセットで使うこと。
+      マニフェストの APPLICATION_ID だけ本番用に変えて、ユニット ID が Google のサンプルのままだと
+      配信されないことがあります（内部テスト・本番とも）。
+
+      Google 公式のテスト用（開発・検証用）の組み合わせ:
+      - admob_application_id
+      - admob_banner_ad_unit_id
+      - admob_interstitial_ad_unit_id
+    -->
+    <string name="admob_application_id" translatable="false">ca-app-pub-3940256099942544~3347511713</string>
+    <string name="admob_banner_ad_unit_id" translatable="false">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="admob_interstitial_ad_unit_id" translatable="false">ca-app-pub-3940256099942544/1033173712</string>
+</resources>

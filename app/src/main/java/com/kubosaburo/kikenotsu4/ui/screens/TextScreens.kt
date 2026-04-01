@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -171,9 +172,11 @@ fun TextListScreen(
 @Composable
 private fun TextListAdMobBanner(modifier: Modifier = Modifier) {
     AndroidView(
-        modifier = modifier.fillMaxWidth(),
-        factory = { context ->
-            createStudyBannerAdView(context)
+        modifier = modifier
+            .fillMaxWidth()
+            .height(50.dp),
+        factory = { ctx ->
+            createStudyBannerAdView(ctx)
         }
     )
 }

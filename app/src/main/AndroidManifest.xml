@@ -35,10 +35,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.App">
 
-        <!-- AdMob App ID（テスト用。リリース前にご自身のIDへ変更してください） -->
+        <!-- AdMob App ID（admob.xml の admob_application_id と一致させる） -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-3940256099942544~3347511713" />
+            android:value="@string/admob_application_id" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

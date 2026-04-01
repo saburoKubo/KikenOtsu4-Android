@@ -6,19 +6,21 @@ import android.content.Context
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
+import com.kubosaburo.kikenotsu4.R
 
 /**
  * 学習画面用バナー [AdView]。
- * [AdView.setAdSize] は Java で `AdView` を返すため、戻り値を使わない呼び出しで IDE が警告することがある。
- * 生成処理はこのファイルに閉じ、`@file:Suppress` で抑止する。
+ * ユニット ID は [R.string.admob_banner_ad_unit_id]（admob.xml）。本番は AdMob で同じアプリ用ユニットを作成して差し替える。
  */
 fun createStudyBannerAdView(
     context: Context,
-    /** テスト用デフォルト。本番は各画面で本番ユニットIDを渡す */
-    adUnitId: String = "ca-app-pub-3940256099942544/6300978111",
-): AdView =
-    AdView(context).apply {
-        this.adUnitId = adUnitId
+    /** null のときは strings のバナー ID を使う */
+    adUnitId: String? = null,
+): AdView {
+    val unit = adUnitId ?: context.getString(R.string.admob_banner_ad_unit_id)
+    return AdView(context).apply {
+        this.adUnitId = unit
         setAdSize(AdSize.BANNER)
         loadAd(AdRequest.Builder().build())
     }
+}

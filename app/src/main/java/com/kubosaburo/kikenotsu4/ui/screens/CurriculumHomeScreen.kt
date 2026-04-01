@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -133,10 +134,11 @@ fun CurriculumHomeScreen(
 @Composable
 private fun AdMobBanner(modifier: Modifier = Modifier) {
     AndroidView(
-        modifier = modifier.fillMaxWidth(),
-        factory = { context ->
-            // テスト用ユニットID（本番前に createStudyBannerAdView の引数で差し替え）
-            createStudyBannerAdView(context)
+        modifier = modifier
+            .fillMaxWidth()
+            .height(50.dp),
+        factory = { ctx ->
+            createStudyBannerAdView(ctx)
         }
     )
 }

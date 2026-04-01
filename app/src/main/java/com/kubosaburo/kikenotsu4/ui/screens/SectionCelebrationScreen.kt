@@ -35,7 +35,9 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -228,7 +230,11 @@ private fun ConfettiOverlay(
                 speed = 0.12f + Random.nextFloat() * 0.42f,
                 // 画面ピクセル。以前は 16〜34 程度 → ひとまわり大きく（約 28〜62）
                 size = 28f + Random.nextFloat() * 34f,
-                color = colors.random()
+                color = colors.random(),
+                // 粒ごとに回転速度・向き・初期角をずらす（一枚一枚バラバラに回る）
+                rotationDegPerSec = (if (Random.nextBoolean()) 1f else -1f) *
+                    (90f + Random.nextFloat() * 270f),
+                rotationPhaseDeg = Random.nextFloat() * 360f,
             )
         }
     }
@@ -254,11 +260,18 @@ private fun ConfettiOverlay(
             val xx = p.x * w +
                 kotlin.math.sin((elapsedSec * 3.2f / ConfettiCycleSeconds + idx) * 0.7f) * (10f + p.size)
 
-            drawRect(
-                color = p.color,
-                topLeft = androidx.compose.ui.geometry.Offset(xx, yy),
-                size = androidx.compose.ui.geometry.Size(p.size, p.size * 0.7f)
-            )
+            val rectW = p.size
+            val rectH = p.size * 0.7f
+            val pivot = Offset(xx + rectW / 2f, yy + rectH / 2f)
+            val rotationDeg = p.rotationPhaseDeg + elapsedSec * p.rotationDegPerSec
+
+            rotate(degrees = rotationDeg, pivot = pivot) {
+                drawRect(
+                    color = p.color,
+                    topLeft = Offset(xx, yy),
+                    size = androidx.compose.ui.geometry.Size(rectW, rectH)
+                )
+            }
         }
     }
 }
@@ -269,5 +282,9 @@ private data class ConfettiParticle(
     val speed: Float,
     val size: Float,
     val color: Color,
+    /** 1 秒あたりの回転角（度）。正負で回転方向。 */
+    val rotationDegPerSec: Float,
+    /** 開始時の位相（度）。 */
+    val rotationPhaseDeg: Float,
 )
 

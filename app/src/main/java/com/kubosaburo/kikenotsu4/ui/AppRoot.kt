@@ -10,7 +10,9 @@ import java.util.Date
 import java.util.Locale
 import android.app.Activity
 import android.content.Context
+import android.util.Log
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalActivity
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.foundation.background
@@ -18,6 +20,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -285,8 +288,13 @@ fun AppRoot() {
         isLoadingSectionInterstitial = true
         val adRequest = AdRequest.Builder().build()
 
-        // テスト用インタースティシャル広告ユニットID（本番前にご自身のIDへ差し替え）
-        val adUnitId = "ca-app-pub-3940256099942544/1033173712"
+        val adUnitId = try {
+            context.getString(R.string.admob_interstitial_ad_unit_id)
+        } catch (e: Exception) {
+            Log.e("KikenOtsuAds", "admob_interstitial_ad_unit_id missing", e)
+            isLoadingSectionInterstitial = false
+            return
+        }
 
         InterstitialAd.load(
             context,
@@ -301,9 +309,20 @@ fun AppRoot() {
                 override fun onAdFailedToLoad(adError: LoadAdError) {
                     sectionInterstitialAd = null
                     isLoadingSectionInterstitial = false
+                    Log.w(
+                        "KikenOtsuAds",
+                        "Interstitial failed: code=${adError.code} message=${adError.message} domain=${adError.domain}",
+                    )
                 }
             }
         )
+    }
+
+    // クイズ中に先読みしておき、セクション祝画面の「次へ」までにインタースティシャルが載りやすくする
+    LaunchedEffect(quizTextId) {
+        if (quizTextId != null) {
+            loadSectionInterstitialIfNeeded()
+        }
     }
 
     fun openCurriculumSection(sectionId: String, sectionType: String, refId: String): CurriculumOpenOutcome {
@@ -1215,6 +1234,7 @@ fun AppRoot() {
 
             celebrationMessage != null && celebrationTextId != null -> {
                 val msg = celebrationMessage!!
+                val activityForInterstitialAd = LocalActivity.current
                 // 次のセクションに進むタイミングでインタースティシャル広告を出したいので、事前にロードしておく
                 LaunchedEffect(Unit) {
                     loadSectionInterstitialIfNeeded()
@@ -1257,8 +1277,14 @@ fun AppRoot() {
                         // 有料版はバナー同様インタースティシャルも出さない
                         if (!proManager.isProEnabled) {
                             sectionInterstitialAd?.let { ad ->
-                                (context as? android.app.Activity)?.let { activity ->
-                                    ad.show(activity)
+                                val host = activityForInterstitialAd
+                                if (host != null) {
+                                    ad.show(host)
+                                } else {
+                                    Log.w(
+                                        "KikenOtsuAds",
+                                        "Interstitial not shown: Activity was null (use LocalActivity)",
+                                    )
                                 }
                                 sectionInterstitialAd = null
                             }
