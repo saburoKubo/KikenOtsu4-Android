@@ -27,11 +27,14 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.kubosaburo.kikenotsu4.ui.parseBoldMarkdown
 import java.util.Locale
+import com.kubosaburo.kikenotsu4.data.AssetRepository
 import com.kubosaburo.kikenotsu4.data.MockTestResultStore
 import com.kubosaburo.kikenotsu4.data.MockTestDefinition
 import com.kubosaburo.kikenotsu4.data.MockTestLoader
@@ -56,7 +59,9 @@ private data class MockSessionQuestion(
     @SerialName("correctIndex")
     val correctIndex: Int,
     val category: String,
-    val explanation: String = ""
+    val explanation: String = "",
+    @SerialName("text_id")
+    val textId: String = "",
 )
 
 @Serializable
@@ -84,6 +89,12 @@ fun MockTestSessionScreen(
 
     val allQuestionsById = remember {
         runCatching { loadQuestionsById(context) }.getOrDefault(emptyMap())
+    }
+
+    val textTitleByTextId = remember {
+        runCatching {
+            AssetRepository.loadTexts(context).associate { it.id to it.title }
+        }.getOrDefault(emptyMap())
     }
 
     val sessionQuestionIds = remember(mockTest, allQuestionsById) {
@@ -153,6 +164,26 @@ fun MockTestSessionScreen(
         val durationSeconds = ((System.currentTimeMillis() - startedAtMillis) / 1000L).toInt().coerceAtLeast(0)
         val mockTestId = mockTest?.id ?: if (isPro) "mock_random" else "mock_trial_fixed"
 
+        val wrongQs = sessionQuestions.mapNotNull { q ->
+            if (answeredCorrectByQuestionId[q.id] == false) {
+                val n = sessionQuestions.indexOfFirst { it.id == q.id } + 1
+                val bookTitle = q.textId.trim().let { tid ->
+                    textTitleByTextId[tid]?.trim().orEmpty().let { t ->
+                        if (t.length > 100) t.take(100) + "…" else t
+                    }
+                }
+                MockTestResultStore.WrongQuestion(
+                    id = q.id,
+                    title = if (n > 0) "問題 $n" else "",
+                    textTitle = bookTitle,
+                    questionText = q.question.trim().let { t ->
+                        if (t.length > 220) t.take(220) + "…" else t
+                    },
+                    category = normalizeCategory(q.category),
+                )
+            } else null
+        }
+
         val result = MockTestResultStore.Result(
             mockTestId = mockTestId,
             seed = null,
@@ -166,7 +197,8 @@ fun MockTestSessionScreen(
                     correct = pair.first,
                     total = pair.second,
                 )
-            }
+            },
+            wrongQuestions = wrongQs,
         )
 
         MockTestResultStore.recordResult(
@@ -186,10 +218,43 @@ fun MockTestSessionScreen(
         }
     }
 
+    val scrollState = rememberScrollState()
+    LaunchedEffect(currentIndex) {
+        scrollState.scrollTo(0)
+    }
+
+    val categoryStatModels = remember(categoryStats) {
+        categoryStats.mapValues { (_, pair) ->
+            MockTestResultStore.CategoryStat(pair.first, pair.second)
+        }
+    }
+    val isPassedExam = remember(isFinished, categoryStatModels) {
+        if (!isFinished) false
+        else MockTestResultStore.isMockThreeSubjectPassed(categoryStatModels, 60)
+    }
+    val wrongListOnResult = remember(isFinished, sessionQuestions, answeredCorrectByQuestionId.toMap()) {
+        if (!isFinished) emptyList()
+        else sessionQuestions.mapNotNull { q ->
+            if (answeredCorrectByQuestionId[q.id] == false) {
+                val n = sessionQuestions.indexOfFirst { it.id == q.id } + 1
+                val bookTitle = q.textId.trim().let { tid ->
+                    textTitleByTextId[tid]?.trim().orEmpty()
+                }
+                MockTestResultStore.WrongQuestion(
+                    id = q.id,
+                    title = if (n > 0) "問題 $n" else "",
+                    textTitle = bookTitle,
+                    questionText = q.question.trim(),
+                    category = normalizeCategory(q.category),
+                )
+            } else null
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scrollState)
             .padding(contentPadding)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -288,6 +353,41 @@ fun MockTestSessionScreen(
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
+                    Card(
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isPassedExam) {
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f)
+                            } else {
+                                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.45f)
+                            }
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(14.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text(
+                                text = if (isPassedExam) {
+                                    "合格です。おめでとう！"
+                                } else {
+                                    "今回は不合格でした。下の一覧で弱点をつぶしていきましょう"
+                                },
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isPassedExam) {
+                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                } else {
+                                    MaterialTheme.colorScheme.onErrorContainer
+                                }
+                            )
+                            Text(
+                                text = "法令・物理化学・性質・消火の各区分で60%以上が合格ラインです。",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                     Text(
                         text = "正解 ${correctCount}問 / 不正解 ${wrongCount}問",
                         style = MaterialTheme.typography.titleMedium,
@@ -324,10 +424,75 @@ fun MockTestSessionScreen(
                                     fontWeight = FontWeight.SemiBold
                                 )
                                 Text(
-                                    text = "${correct}/${total}問（${rate}%）",
+                                    text = "${correct}/${total}問（${rate}%）${if (rate >= 60) " ✓" else " ✗"}",
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = if (rate >= 60) {
+                                        MaterialTheme.colorScheme.primary
+                                    } else {
+                                        MaterialTheme.colorScheme.error
+                                    }
                                 )
+                            }
+                        }
+                    }
+
+                    if (wrongListOnResult.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "間違えた問題（${wrongListOnResult.size}問）",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        wrongListOnResult.forEach { w ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(14.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                                )
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                                ) {
+                                    if (w.title.isNotBlank() || w.textTitle.isNotBlank()) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            if (w.title.isNotBlank()) {
+                                                Text(
+                                                    text = w.title,
+                                                    style = MaterialTheme.typography.labelLarge,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = MaterialTheme.colorScheme.primary
+                                                )
+                                            }
+                                            if (w.textTitle.isNotBlank()) {
+                                                Text(
+                                                    text = parseBoldMarkdown(w.textTitle),
+                                                    modifier = Modifier.weight(1f),
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    fontWeight = FontWeight.Medium,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    maxLines = 3
+                                                )
+                                            }
+                                        }
+                                    }
+                                    Text(
+                                        text = w.category,
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Text(
+                                        text = parseBoldMarkdown(w.questionText),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                }
                             }
                         }
                     }
@@ -345,12 +510,31 @@ fun MockTestSessionScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text(
-                        text = "問題 ${currentIndex + 1}",
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "問題 ${currentIndex + 1}",
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        val bookTitle = currentQuestion?.textId?.trim()?.takeIf { it.isNotEmpty() }
+                            ?.let { textTitleByTextId[it]?.trim() }
+                            ?.takeIf { it.isNotEmpty() }
+                        if (bookTitle != null) {
+                            Text(
+                                text = bookTitle,
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodySmall,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                maxLines = 2
+                            )
+                        }
+                    }
                     Text(
                         text = currentQuestion?.question.orEmpty(),
                         style = MaterialTheme.typography.titleMedium,
@@ -456,7 +640,9 @@ fun MockTestSessionScreen(
                             }
                         )
                         Text(
-                            text = currentQuestion.explanation.ifBlank { "解説はありません。" },
+                            text = parseBoldMarkdown(
+                                currentQuestion.explanation.ifBlank { "解説はありません。" }
+                            ),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

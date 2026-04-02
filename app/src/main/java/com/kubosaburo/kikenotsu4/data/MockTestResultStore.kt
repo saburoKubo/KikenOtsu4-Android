@@ -15,7 +15,21 @@ object MockTestResultStore {
     ) {
         val rate: Double
             get() = if (total > 0) correct.toDouble() / total.toDouble() else 0.0
+
+        /** 百分率（表示用）。total==0 のとき 0 */
+        val percent: Int
+            get() = if (total > 0) (correct * 100 / total) else 0
     }
+
+    /** 不正解だった問題（結果画面・保存用） */
+    @Serializable
+    data class WrongQuestion(
+        val id: String,
+        val title: String = "",
+        val textTitle: String = "",
+        val questionText: String,
+        val category: String,
+    )
 
     @Serializable
     data class Result(
@@ -27,12 +41,15 @@ object MockTestResultStore {
         val correct: Int,
         val wrong: Int,
         val categoryStats: Map<String, CategoryStat> = emptyMap(),
+        val wrongQuestions: List<WrongQuestion> = emptyList(),
     ) {
         val overallRate: Double
             get() = if (total > 0) correct.toDouble() / total.toDouble() else 0.0
 
-        fun isPassed(threshold: Double = 0.60): Boolean {
-            return isOverallPassed(categoryStats, threshold)
+        /** 法令・物理化学・性質・消火がそれぞれ [passThreshold]（既定 60%）以上なら合格 */
+        fun isPassed(passThreshold: Double = 0.60): Boolean {
+            val minPercent = (passThreshold * 100.0).toInt().coerceIn(0, 100)
+            return isMockThreeSubjectPassed(categoryStats, minPercent)
         }
     }
 
@@ -153,6 +170,23 @@ object MockTestResultStore {
         return categoryStats.values
             .filter { it.total > 0 }
             .all { it.rate >= threshold }
+    }
+
+    /**
+     * 模擬試験の合否：法令・物理化学・性質・消火の3区分がすべて [minPercent]% 以上。
+     * 区分が欠ける・0問のときは不合格。
+     */
+    fun isMockThreeSubjectPassed(
+        categoryStats: Map<String, CategoryStat>,
+        minPercent: Int = 60,
+    ): Boolean {
+        val required = listOf("法令", "物理化学", "性質・消火")
+        for (key in required) {
+            val stat = categoryStats[key] ?: return false
+            if (stat.total <= 0) return false
+            if (stat.percent < minPercent) return false
+        }
+        return true
     }
 
     private fun saveSummary(context: Context, summary: Summary) {
