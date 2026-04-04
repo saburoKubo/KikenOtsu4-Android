@@ -675,14 +675,14 @@ fun AppRoot() {
                         val topTitle =
                             when {
                                 showFinalCelebration -> "おめでとう！"
-                                forceShowHomeRoot -> "ホーム"
+                                forceShowHomeRoot -> "危険物乙４学習アプリ"
                                 celebrationMessage != null -> "お疲れさま！"
                                 // クイズ画面はバックグラウンドに残り得るが、進捗/設定タブのときはそのタイトルを優先する
                                 selectedTab == BottomTab.PROGRESS -> "進捗"
                                 selectedTab == BottomTab.SETTINGS -> "設定"
                                 quizTextId != null && isAutoReview -> "復習問題"
                                 quizTextId != null -> "クイズ"
-                                homeMode == HomeMode.MENU -> "ホーム"
+                                homeMode == HomeMode.MENU -> "危険物乙４学習アプリ"
                                 homeMode == HomeMode.CURRICULUM -> "カリキュラム"
                                 homeMode == HomeMode.MOCK -> "模擬テスト"
                                 homeMode == HomeMode.FREE_STUDY && freeStudyMode == FreeStudyMode.TEXT_LIST -> "テキスト一覧"
