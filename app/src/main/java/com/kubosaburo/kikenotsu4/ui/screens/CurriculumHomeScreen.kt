@@ -23,10 +23,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.kubosaburo.kikenotsu4.ui.theme.KikenOtsu4Theme
 import androidx.compose.ui.viewinterop.AndroidView
 import com.kubosaburo.kikenotsu4.R
 import com.kubosaburo.kikenotsu4.data.CurriculumChapter
+import com.kubosaburo.kikenotsu4.data.CurriculumSection
 import com.kubosaburo.kikenotsu4.data.CurriculumSectionType
 import com.kubosaburo.kikenotsu4.ui.components.CharacterSpeechBubbleView
 import com.kubosaburo.kikenotsu4.ui.components.StudyListChapterStyleCard
@@ -141,5 +144,39 @@ private fun AdMobBanner(modifier: Modifier = Modifier) {
             createStudyBannerAdView(ctx)
         }
     )
+}
+
+@Preview(showBackground = true, heightDp = 800)
+@Composable
+private fun CurriculumHomeScreenPreview() {
+    KikenOtsu4Theme {
+        CurriculumHomeScreen(
+            contentPadding = PaddingValues(0.dp),
+            chapters = listOf(
+                CurriculumChapter(
+                    id = "ch_preview",
+                    title = "第1章 法令の基礎",
+                    description = "危険物の定義と分類を学びます。",
+                    sections = listOf(
+                        CurriculumSection(
+                            id = "s1",
+                            title = "テキスト",
+                            type = CurriculumSectionType.TEXT,
+                            refId = "text_001",
+                        ),
+                        CurriculumSection(
+                            id = "s2",
+                            title = "確認クイズ",
+                            type = CurriculumSectionType.QUIZ,
+                            refId = "g001",
+                        ),
+                    ),
+                    categoryLabel = "法令",
+                ),
+            ),
+            onOpenChapter = {},
+            showBannerAd = false,
+        )
+    }
 }
 

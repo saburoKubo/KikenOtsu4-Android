@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -44,6 +43,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.viewinterop.AndroidView
@@ -51,6 +51,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.kubosaburo.kikenotsu4.R
 import com.kubosaburo.kikenotsu4.data.TextItem
+import com.kubosaburo.kikenotsu4.ui.theme.KikenOtsu4Theme
 import com.kubosaburo.kikenotsu4.ui.components.CharacterSpeechBubbleView
 import com.kubosaburo.kikenotsu4.ui.components.StudyListChapterStyleCard
 import com.kubosaburo.kikenotsu4.ui.components.studyListScreenBackgroundColor
@@ -303,13 +304,12 @@ fun TextDetailScreen(
 
         items(textItem.content.indices.toList()) { idx ->
             val line = textItem.content[idx]
-            val (c1, c2) = characterFor(idx)
+            val characterRes = characterFor(idx)
 
             Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 CharacterSpeechBubbleView(
-                    characterImage1 = c1,
-                    characterImage2 = c2,
-                    durationMillis = 1400L,
+                    characterImage1 = characterRes,
+                    characterImage2 = null,
                     text = parseBoldMarkdown(line),
                     modifier = Modifier.wrapContentWidth(),
                     characterSize = 72.dp,
@@ -444,10 +444,56 @@ private fun TextTitleCard(title: String) {
     }
 }
 
-private fun characterFor(index: Int): Pair<Int, Int?> {
+private fun characterFor(index: Int): Int {
     return when (index % 3) {
-        0 -> R.drawable.nico_professor_normal to R.drawable.nico_professor_left
-        1 -> R.drawable.nico_idle to R.drawable.nico_idle_wink
-        else -> R.drawable.nico_flagdown to R.drawable.nico_flagup
+        0 -> R.drawable.nico_professor_left
+        1 -> R.drawable.nico_idle_wink
+        else -> R.drawable.nico_flagup
+    }
+}
+
+@Preview(showBackground = true, heightDp = 800)
+@Composable
+private fun TextListScreenPreview() {
+    KikenOtsu4Theme {
+        TextListScreen(
+            items = listOf(
+                TextItem(
+                    id = "text_001",
+                    title = "サンプルテキスト",
+                    categoryMain = "法令",
+                    content = listOf("最初の段落のプレビューです。"),
+                ),
+                TextItem(
+                    id = "text_002",
+                    title = "もう一つのテキスト",
+                    categoryMain = "物理化学",
+                    content = listOf("本文のダミー"),
+                ),
+            ),
+            contentPadding = PaddingValues(0.dp),
+            onOpen = {},
+            showBannerAd = false,
+        )
+    }
+}
+
+@Preview(showBackground = true, heightDp = 900)
+@Composable
+private fun TextDetailScreenPreview() {
+    KikenOtsu4Theme {
+        TextDetailScreen(
+            textItem = TextItem(
+                id = "text_001",
+                title = "危険物の定義（消防法）",
+                categoryMain = "法令",
+                content = listOf(
+                    "**消防法**では、危険物とは別表第1に掲げられた物品とされています。",
+                    "試験では定義の言い換えがよく出ます。",
+                ),
+            ),
+            contentPadding = PaddingValues(0.dp),
+            onStartQuiz = {},
+        )
     }
 }

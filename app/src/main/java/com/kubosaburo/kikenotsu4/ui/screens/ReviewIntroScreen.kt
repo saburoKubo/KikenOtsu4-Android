@@ -25,7 +25,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.kubosaburo.kikenotsu4.ui.theme.KikenOtsu4Theme
 import com.kubosaburo.kikenotsu4.R
 import com.kubosaburo.kikenotsu4.ui.components.CharacterSpeechBubbleView
 import org.json.JSONObject
@@ -181,4 +183,17 @@ private fun loadStartingPraiseMessages(context: Context): List<String> {
             }
         }
     }.getOrElse { emptyList() }
+}
+
+@Preview(showBackground = true, heightDp = 700)
+@Composable
+private fun ReviewIntroScreenPreview() {
+    KikenOtsu4Theme {
+        ReviewIntroScreen(
+            contentPadding = PaddingValues(0.dp),
+            dueCount = 5,
+            onStartReview = {},
+            onLater = {},
+        )
+    }
 }

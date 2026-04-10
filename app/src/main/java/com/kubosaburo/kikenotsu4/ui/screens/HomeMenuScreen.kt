@@ -36,7 +36,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.kubosaburo.kikenotsu4.ui.theme.KikenOtsu4Theme
 import androidx.compose.ui.viewinterop.AndroidView
 import com.kubosaburo.kikenotsu4.R
 import com.kubosaburo.kikenotsu4.data.StartingPraiseProvider
@@ -334,6 +336,24 @@ private fun HomeMenuCard(
                 tint = iconTint
             )
         }
+    }
+}
+
+@Preview(showBackground = true, heightDp = 900)
+@Composable
+private fun HomeMenuScreenPreview() {
+    KikenOtsu4Theme {
+        HomeMenuScreen(
+            contentPadding = PaddingValues(0.dp),
+            totalSections = 12,
+            completedSections = 4,
+            curriculumLap = 1,
+            todayReviewCount = 3,
+            showBannerAd = false,
+            onGoCurriculum = {},
+            onGoFreeStudy = {},
+            onGoMock = {},
+        )
     }
 }
 

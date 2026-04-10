@@ -17,7 +17,9 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.kubosaburo.kikenotsu4.ui.theme.KikenOtsu4Theme
 
 @Suppress("unused")
 @Composable
@@ -81,5 +83,20 @@ fun ResultScreen(
         ) {
             Text("ホームへ")
         }
+    }
+}
+
+@Preview(showBackground = true, heightDp = 700)
+@Composable
+private fun ResultScreenPreview() {
+    KikenOtsu4Theme {
+        ResultScreen(
+            total = 5,
+            correct = 3,
+            wrongIds = listOf("q0001", "q0002"),
+            contentPadding = PaddingValues(0.dp),
+            onRetry = {},
+            onBackHome = {},
+        )
     }
 }

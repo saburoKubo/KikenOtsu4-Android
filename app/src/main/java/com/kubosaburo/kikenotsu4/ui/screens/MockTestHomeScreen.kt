@@ -27,7 +27,9 @@ import com.kubosaburo.kikenotsu4.ui.components.CharacterSpeechBubbleView
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.kubosaburo.kikenotsu4.ui.theme.KikenOtsu4Theme
 
 @Composable
 fun MockTestHomeScreen(
@@ -260,3 +262,20 @@ private fun mockTestSectionSummary(test: MockTestDefinition?): String {
 
 private fun mockTestDescriptionOrFallback(test: MockTestDefinition?, fallback: String): String =
     test?.description?.takeIf { it.isNotBlank() } ?: fallback
+
+@Preview(showBackground = true, heightDp = 900)
+@Composable
+private fun MockTestHomeScreenPreview() {
+    KikenOtsu4Theme {
+        MockTestHomeScreen(
+            contentPadding = PaddingValues(0.dp),
+            onStartTrial = {},
+            onStartNormalMock = {},
+            isPro = true,
+            latestTrialResultText = "18 / 30問",
+            latestTrialDateText = "2026/03/01 12:00",
+            latestRandomResultText = "20 / 30問",
+            latestRandomDateText = "2026/03/02 10:00",
+        )
+    }
+}

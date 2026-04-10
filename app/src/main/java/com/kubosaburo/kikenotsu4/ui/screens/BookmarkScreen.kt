@@ -35,7 +35,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext
+import com.kubosaburo.kikenotsu4.ui.theme.KikenOtsu4Theme
 import com.kubosaburo.kikenotsu4.R
 import com.kubosaburo.kikenotsu4.data.BookmarkStore
 import com.kubosaburo.kikenotsu4.data.TextItem
@@ -174,5 +177,27 @@ fun BookmarkScreen(
         }
 
         item { Spacer(Modifier.height(28.dp)) }
+    }
+}
+
+@Preview(showBackground = true, heightDp = 800)
+@Composable
+private fun BookmarkScreenPreview() {
+    val context = LocalContext.current
+    KikenOtsu4Theme {
+        BookmarkScreen(
+            contentPadding = PaddingValues(0.dp),
+            texts = listOf(
+                TextItem(
+                    id = "text_001",
+                    title = "ブックマークしたテキスト",
+                    categoryMain = "法令",
+                    content = listOf("プレビュー用"),
+                ),
+            ),
+            bookmarkStore = BookmarkStore(context),
+            onOpenText = {},
+            onGoToTextList = {},
+        )
     }
 }

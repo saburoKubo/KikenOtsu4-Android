@@ -36,7 +36,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.kubosaburo.kikenotsu4.ui.theme.KikenOtsu4Theme
 import com.kubosaburo.kikenotsu4.R
 import com.kubosaburo.kikenotsu4.ui.components.CharacterSpeechBubbleView
 
@@ -225,5 +227,19 @@ private fun FreeStudyCategoryCard(
                 modifier = Modifier.size(28.dp)
             )
         }
+    }
+}
+
+@Preview(showBackground = true, heightDp = 800)
+@Composable
+private fun FreeStudyHomeScreenPreview() {
+    KikenOtsu4Theme {
+        FreeStudyHomeScreen(
+            contentPadding = PaddingValues(0.dp),
+            onTextQuiz = {},
+            onBookmarks = {},
+            onTodayReview = {},
+            onSearch = {},
+        )
     }
 }

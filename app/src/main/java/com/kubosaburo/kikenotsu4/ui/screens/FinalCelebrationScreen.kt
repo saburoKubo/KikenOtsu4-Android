@@ -47,9 +47,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.kubosaburo.kikenotsu4.R
+import com.kubosaburo.kikenotsu4.ui.theme.KikenOtsu4Theme
 import kotlinx.coroutines.delay
 import kotlin.random.Random
 
@@ -325,5 +327,17 @@ private fun ConfettiOverlay(
                 )
             }
         }
+    }
+}
+
+@Preview(showBackground = true, heightDp = 800)
+@Composable
+private fun FinalCelebrationScreenPreview() {
+    KikenOtsu4Theme {
+        FinalCelebrationScreen(
+            contentPadding = PaddingValues(0.dp),
+            onRestartFromFirst = null,
+            onGoHome = {},
+        )
     }
 }

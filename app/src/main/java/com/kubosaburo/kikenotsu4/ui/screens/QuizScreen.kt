@@ -43,7 +43,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.kubosaburo.kikenotsu4.ui.theme.KikenOtsu4Theme
 import com.kubosaburo.kikenotsu4.data.QuizQuestion
 // import com.kubosaburo.kikenotsu4.ui.parseBoldMarkdown
 import androidx.compose.ui.text.AnnotatedString
@@ -528,5 +530,28 @@ private class PraiseMessageProvider(private val context: android.content.Context
     fun randomWrong(): String {
         if (wrong.isEmpty()) return "惜しい！解説を読んで次いこう。"
         return wrong[Random.nextInt(wrong.size)]
+    }
+}
+
+@Preview(showBackground = true, heightDp = 900)
+@Composable
+private fun QuizScreenPreview() {
+    KikenOtsu4Theme {
+        QuizScreen(
+            textId = "text_001",
+            allQuestions = listOf(
+                QuizQuestion(
+                    id = "q_preview_1",
+                    question = "サンプル問題：次のうち正しいものはどれか。",
+                    choices = listOf("選択肢A", "選択肢B", "選択肢C", "選択肢D", "選択肢E"),
+                    correctIndex = 0,
+                    textId = "text_001",
+                    category = "法令",
+                    explanation = "解説のプレビューです。",
+                ),
+            ),
+            onBack = {},
+            contentPadding = PaddingValues(0.dp),
+        )
     }
 }

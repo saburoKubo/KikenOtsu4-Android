@@ -27,7 +27,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.kubosaburo.kikenotsu4.ui.theme.KikenOtsu4Theme
 import com.kubosaburo.kikenotsu4.data.TextItem
 import com.kubosaburo.kikenotsu4.ui.components.studyListItemCardContainerColor
 import com.kubosaburo.kikenotsu4.ui.components.studyListScreenBackgroundColor
@@ -160,6 +162,25 @@ fun SearchScreen(
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true, heightDp = 800)
+@Composable
+private fun SearchScreenPreview() {
+    KikenOtsu4Theme {
+        SearchScreen(
+            contentPadding = PaddingValues(0.dp),
+            texts = listOf(
+                TextItem(
+                    id = "text_001",
+                    title = "危険物の定義",
+                    categoryMain = "法令",
+                    content = listOf("消防法別表第1について"),
+                ),
+            ),
+            onOpenText = {},
+        )
     }
 }
 

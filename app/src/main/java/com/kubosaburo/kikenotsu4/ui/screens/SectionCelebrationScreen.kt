@@ -42,8 +42,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.kubosaburo.kikenotsu4.ui.theme.KikenOtsu4Theme
 import androidx.compose.ui.res.painterResource
 import com.kubosaburo.kikenotsu4.R
 import com.kubosaburo.kikenotsu4.data.LearningEffectSound
@@ -287,4 +289,16 @@ private data class ConfettiParticle(
     /** 開始時の位相（度）。 */
     val rotationPhaseDeg: Float,
 )
+
+@Preview(showBackground = true, heightDp = 700)
+@Composable
+private fun SectionCelebrationScreenPreview() {
+    KikenOtsu4Theme {
+        SectionCelebrationScreen(
+            message = "おめでとう！この調子で次もいこう",
+            isCurriculum = true,
+            onTapNext = {},
+        )
+    }
+}
 

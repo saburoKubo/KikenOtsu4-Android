@@ -12,7 +12,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.kubosaburo.kikenotsu4.ui.theme.KikenOtsu4Theme
 import com.kubosaburo.kikenotsu4.R
 import com.kubosaburo.kikenotsu4.ui.components.CharacterSpeechBubbleView
 
@@ -49,6 +51,17 @@ fun ReviewCompletionScreen(
         ) {
             Text("つづける")
         }
+    }
+}
+
+@Preview(showBackground = true, heightDp = 600)
+@Composable
+private fun ReviewCompletionScreenPreview() {
+    KikenOtsu4Theme {
+        ReviewCompletionScreen(
+            contentPadding = PaddingValues(0.dp),
+            onContinue = {},
+        )
     }
 }
 

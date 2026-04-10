@@ -31,7 +31,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.kubosaburo.kikenotsu4.ui.theme.KikenOtsu4Theme
 import com.kubosaburo.kikenotsu4.ui.parseBoldMarkdown
 import java.util.Locale
 import com.kubosaburo.kikenotsu4.data.AssetRepository
@@ -751,4 +753,16 @@ private fun isQuestionIdInRange(id: String, start: String, end: String): Boolean
 
 private fun extractQuestionNumber(id: String): Int {
     return id.filter { it.isDigit() }.toIntOrNull() ?: -1
+}
+
+@Preview(showBackground = true, heightDp = 900)
+@Composable
+private fun MockTestSessionScreenPreview() {
+    KikenOtsu4Theme {
+        MockTestSessionScreen(
+            contentPadding = PaddingValues(0.dp),
+            onBack = {},
+            isPro = false,
+        )
+    }
 }
