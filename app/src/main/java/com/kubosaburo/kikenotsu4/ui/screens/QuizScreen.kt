@@ -30,11 +30,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.LocalContext
-import org.json.JSONObject
-import kotlin.random.Random
 import com.kubosaburo.kikenotsu4.ui.components.CharacterSpeechBubbleView
 import com.kubosaburo.kikenotsu4.R
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,6 +69,8 @@ fun QuizScreen(
     // (Fallback) legacy finish handler (previously used to show ResultScreen)
     onFinish: ((total: Int, correct: Int, wrongIds: List<String>) -> Unit)? = null
 ) {
+    val questionIdsKey = questionIds.orEmpty().joinToString(",")
+
     val questions = remember(allQuestions, textId, questionIds) {
         if (questionIds.isNullOrEmpty()) {
             allQuestions.filter { it.textId == textId }
@@ -95,16 +96,24 @@ fun QuizScreen(
         return
     }
 
-    var index by remember(textId, questionIds) { mutableIntStateOf(0) }
-    var selected by remember(textId, questionIds, index) { mutableStateOf<Int?>(null) }
-    var showExplanation by remember(textId, questionIds, index) { mutableStateOf(false) }
-    var answeredIsCorrect by remember(textId, questionIds, index) { mutableStateOf<Boolean?>(null) }
-    var praiseText by remember(textId, questionIds, index) { mutableStateOf<String?>(null) }
-    var correctCount by remember(textId, questionIds) { mutableIntStateOf(0) }
-    var wrongIds by remember(textId, questionIds) { mutableStateOf<List<String>>(emptyList()) }
+    // 画面回転で Activity が再作成されても維持する（復習・テキスト後クイズの途中で戻らないように）
+    var index by rememberSaveable(textId, questionIdsKey) { mutableIntStateOf(0) }
+    /** 未選択は -1。選択肢インデックスは 0 以上 */
+    var selectedChoice by rememberSaveable(textId, questionIdsKey, index) { mutableIntStateOf(-1) }
+    var showExplanation by rememberSaveable(textId, questionIdsKey, index) { mutableStateOf(false) }
+    /** -1: 未回答, 0: 不正解, 1: 正解 */
+    var answeredState by rememberSaveable(textId, questionIdsKey, index) { mutableIntStateOf(-1) }
+    var correctCount by rememberSaveable(textId, questionIdsKey) { mutableIntStateOf(0) }
+    var wrongIdsStr by rememberSaveable(textId, questionIdsKey) { mutableStateOf("") }
+
+    fun wrongIdsList(): List<String> =
+        if (wrongIdsStr.isEmpty()) emptyList() else wrongIdsStr.split(",").filter { it.isNotEmpty() }
+
+    fun appendWrongId(id: String) {
+        wrongIdsStr = (wrongIdsList() + id).distinct().joinToString(",")
+    }
 
     val context = LocalContext.current
-    val praiseProvider = remember { PraiseMessageProvider(context) }
 
     fun mdBold(text: String): AnnotatedString = buildAnnotatedString {
         if (text.isEmpty()) return@buildAnnotatedString
@@ -133,13 +142,9 @@ fun QuizScreen(
 
     val listState = rememberLazyListState()
 
-    // 問題が切り替わったら、必ず先頭（問題文）まで戻す
+    // 問題が変わったときは先頭へスクロール（選択・正誤は index キーの Saveable で別スロットになる）
     LaunchedEffect(index) {
         listState.scrollToItem(0)
-        selected = null
-        showExplanation = false
-        answeredIsCorrect = null
-        praiseText = null
     }
 
     val q = questions[index]
@@ -251,36 +256,34 @@ fun QuizScreen(
             item { Spacer(Modifier.height(6.dp)) }
 
             // ✅ 正誤メッセージ（吹き出し）を問題文と選択肢の間に表示
-            if (showExplanation) {
+            if (showExplanation && answeredState >= 0) {
                 item {
-                    val msg = praiseText ?: ""
-                    if (msg.isNotBlank()) {
-                        val isCorrect = answeredIsCorrect == true
-                        CharacterSpeechBubbleView(
-                            characterImage1 = R.drawable.nicosme_normal,
-                            characterImage2 = if (isCorrect) {
-                                R.drawable.nicosme_happy
-                            } else {
-                                R.drawable.nicosme_doten
-                            },
-                            durationMillis = 2000L,
-                            text = msg,
-                            modifier = Modifier.fillMaxWidth(),
-                            characterSize = 96.dp,
-                            bubbleBorderColor = if (dark) {
-                                scheme.outline.copy(alpha = 0.4f)
-                            } else {
-                                Color(0xFFE6B7C6)
-                            }
-                        )
-                    }
+                    val isCorrect = answeredState == 1
+                    val msg = if (isCorrect) "正解" else "残念"
+                    CharacterSpeechBubbleView(
+                        characterImage1 = R.drawable.nicosme_normal,
+                        characterImage2 = if (isCorrect) {
+                            R.drawable.nicosme_happy
+                        } else {
+                            R.drawable.nicosme_doten
+                        },
+                        durationMillis = 2000L,
+                        text = msg,
+                        modifier = Modifier.fillMaxWidth(),
+                        characterSize = 96.dp,
+                        bubbleBorderColor = if (dark) {
+                            scheme.outline.copy(alpha = 0.4f)
+                        } else {
+                            Color(0xFFE6B7C6)
+                        }
+                    )
                 }
 
                 item { Spacer(Modifier.height(12.dp)) }
             }
 
             itemsIndexed(q.choices) { i, choice ->
-                val isSelected = (selected == i)
+                val isSelected = (selectedChoice == i)
                 val isCorrectChoice = (i == q.correctIndex)
                 val isWrongSelected = showExplanation && isSelected && !isCorrectChoice
 
@@ -319,20 +322,15 @@ fun QuizScreen(
                             if (isCorrect) {
                                 correctCount += 1
                             } else {
-                                wrongIds = (wrongIds + q.id).distinct()
+                                appendWrongId(q.id)
                             }
 
                             // Per-question hook
                             onAnswerCommitted?.invoke(q.id, isCorrect)
 
                             // Show explanation mode (iOS風の結果表示はこの画面内で行う)
-                            selected = i
-                            answeredIsCorrect = isCorrect
-                            praiseText = if (isCorrect) {
-                                praiseProvider.randomCorrect()
-                            } else {
-                                praiseProvider.randomWrong()
-                            }
+                            selectedChoice = i
+                            answeredState = if (isCorrect) 1 else 0
                             showExplanation = true
                         },
                     shape = RoundedCornerShape(24.dp),
@@ -448,7 +446,7 @@ fun QuizScreen(
 
                 // ✅ 次の問題へ / もう一度
                 item {
-                    val isCorrect = answeredIsCorrect == true
+                    val isCorrect = answeredState == 1
                     val label = if (isCorrect) "次の問題 ▶" else "もう一度"
 
                     Button(
@@ -459,7 +457,7 @@ fun QuizScreen(
                                 } else {
                                     val total = questions.size
                                     val correct = correctCount
-                                    val wrong = wrongIds
+                                    val wrong = wrongIdsList()
 
                                     // questionIds が渡されているときは、1テキスト完了ではなく
                                     // 復習セッション全体の完了として扱い、SectionCelebration は出さない。
@@ -474,10 +472,9 @@ fun QuizScreen(
                                 }
                             } else {
                                 // もう一度：解説モードを解除して再回答
-                                selected = null
+                                selectedChoice = -1
                                 showExplanation = false
-                                answeredIsCorrect = null
-                                praiseText = null
+                                answeredState = -1
                             }
                         },
                         modifier = Modifier
@@ -490,46 +487,6 @@ fun QuizScreen(
                 }
             }
         }
-    }
-}
-
-
-private class PraiseMessageProvider(private val context: android.content.Context) {
-
-    private val correct: List<String>
-    private val wrong: List<String>
-
-    init {
-        val json = runCatching {
-            context.assets.open("praise_messages.json").bufferedReader().use { it.readText() }
-        }.getOrDefault("{}")
-
-        val root = runCatching { JSONObject(json) }.getOrNull() ?: JSONObject("{}")
-
-        fun readList(key: String): List<String> {
-            val arr = root.optJSONArray(key) ?: return emptyList()
-            val out = ArrayList<String>(arr.length())
-            for (i in 0 until arr.length()) {
-                val obj = arr.optJSONObject(i)
-                val text = obj?.optString("text")?.trim().orEmpty()
-                if (text.isNotBlank()) out.add(text)
-            }
-            return out
-        }
-
-        // ✅ ユーザー側で wrongPraise_messages に変更済み
-        correct = readList("correctPraise_messages")
-        wrong = readList("wrongPraise_messages")
-    }
-
-    fun randomCorrect(): String {
-        if (correct.isEmpty()) return "いい感じ！その調子！"
-        return correct[Random.nextInt(correct.size)]
-    }
-
-    fun randomWrong(): String {
-        if (wrong.isEmpty()) return "惜しい！解説を読んで次いこう。"
-        return wrong[Random.nextInt(wrong.size)]
     }
 }
 
