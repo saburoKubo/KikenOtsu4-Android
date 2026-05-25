@@ -1372,6 +1372,7 @@ fun AppRoot() {
                         // カリキュラム進行にしてはいけない。カリキュラムかどうかは homeMode で判定する。
                         val isCurriculumNow = curHomeMode == HomeMode.CURRICULUM
 
+                        var curriculumFinished = false
                         if (isCurriculumNow) {
                             if (isAutoReview) {
                                 // ✅ Auto-review finished: do NOT advance curriculum pointers here.
@@ -1379,6 +1380,7 @@ fun AppRoot() {
                             } else {
                                 // ✅ curriculum: advance to next section (usually the next text)
                                 advanceCurriculumFromCurrentSection()
+                                curriculumFinished = curriculumNextSectionId == null
                                 celebrationIsCurriculum = true
                                 // 念のため、タブ/モードもカリキュラムに寄せておく（戻り先が一覧になる事故を防ぐ）
                                 selectedTab = BottomTab.HOME
@@ -1406,6 +1408,15 @@ fun AppRoot() {
                         // close quiz
                         quizTextId = null
                         quizQuestionIds = emptyList()
+
+                        if (curriculumFinished) {
+                            celebrationIsCurriculum = false
+                            celebrationMessage = null
+                            celebrationTextId = null
+                            curriculumError = null
+                            debugFinalCelebrationLapOverride = 0
+                            showFinalCelebration = true
+                        }
                     },
                     onFinish = { total, correct, _ ->
                         // 1日1回だけ「学習した」として streak を更新
@@ -1442,8 +1453,10 @@ fun AppRoot() {
                             val curHomeMode = homeMode
                             val isCurriculumNow = curHomeMode == HomeMode.CURRICULUM
 
+                            var curriculumFinished = false
                             if (isCurriculumNow) {
                                 advanceCurriculumFromCurrentSection()
+                                curriculumFinished = curriculumNextSectionId == null
                                 celebrationIsCurriculum = true
                                 selectedTab = BottomTab.HOME
                                 homeMode = HomeMode.CURRICULUM
@@ -1465,6 +1478,15 @@ fun AppRoot() {
 
                             quizTextId = null
                             quizQuestionIds = emptyList()
+
+                            if (curriculumFinished) {
+                                celebrationIsCurriculum = false
+                                celebrationMessage = null
+                                celebrationTextId = null
+                                curriculumError = null
+                                debugFinalCelebrationLapOverride = 0
+                                showFinalCelebration = true
+                            }
                         }
                     }
                 )

@@ -1403,6 +1403,27 @@
                     "title": "ボイルの法則（計算問題）",
                     "type": "quiz",
                     "refId": "g068",
+                    "nextId": "section_69_1"
+                }
+            ]
+        },
+        {
+            "id": "chapter_69",
+            "title": "シャルルの法則",
+            "description": "温度と体積の関係を法則として理解する。",
+            "sections": [
+                {
+                    "id": "section_69_1",
+                    "title": "シャルルの法則",
+                    "type": "text",
+                    "refId": "text_069",
+                    "nextId": "section_69_2"
+                },
+                {
+                    "id": "section_69_2",
+                    "title": "シャルルの法則（理解度チェック）",
+                    "type": "quiz",
+                    "refId": "g069",
                     "nextId": "section_70_1"
                 }
             ]
