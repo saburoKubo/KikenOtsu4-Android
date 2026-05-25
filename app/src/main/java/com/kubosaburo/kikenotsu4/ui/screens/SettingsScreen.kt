@@ -374,6 +374,7 @@ private fun LearningDataSettingsCard(
                 Text(
                     text = "次のデータをこの端末から削除します。\n\n" +
                         "・カリキュラムの続き\n" +
+                        "・学習済み項目\n" +
                         "・クイズの集計（正答数・間違い履歴）\n" +
                         "・復習（忘却曲線に基づく出題スケジュール）\n" +
                         "・ブックマーク\n" +
@@ -437,7 +438,7 @@ private fun LearningDataSettingsCard(
                 )
             }
             Text(
-                text = "カリキュラムの続き、クイズ集計、復習スケジュール、ブックマークなど、この端末の学習データをまとめて削除できます。",
+                text = "カリキュラムの続き、学習済み項目、クイズ集計、復習スケジュール、ブックマークなど、この端末の学習データをまとめて削除できます。",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

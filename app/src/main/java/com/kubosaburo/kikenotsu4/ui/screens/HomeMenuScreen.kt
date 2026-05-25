@@ -51,6 +51,8 @@ fun HomeMenuScreen(
     // カリキュラム進捗（null の場合はカードを非表示）
     totalSections: Int? = null,
     completedSections: Int? = null,
+    completedTextCount: Int? = null,
+    totalTextCount: Int? = null,
     /** [com.kubosaburo.kikenotsu4.data.CurriculumProgressStore.loadLap]。2 以上のとき「○周目」を進捗付近に表示 */
     curriculumLap: Int = 1,
     // 今日の復習件数（null の場合は 0 扱い）
@@ -156,7 +158,7 @@ fun HomeMenuScreen(
                             verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             Text(
-                                text = "進捗",
+                                text = "カリキュラム",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = startCardSecondaryText,
                             )
@@ -174,6 +176,23 @@ fun HomeMenuScreen(
                                     color = Color(0xFFFF8A1E)
                                 )
                             }
+                        }
+
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "学習済み",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = startCardSecondaryText,
+                            )
+                            Text(
+                                text = "${completedTextCount ?: 0}/${totalTextCount ?: 0}",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = startCardPrimaryText,
+                            )
                         }
 
                         Column(
@@ -347,6 +366,8 @@ private fun HomeMenuScreenPreview() {
             contentPadding = PaddingValues(0.dp),
             totalSections = 12,
             completedSections = 4,
+            completedTextCount = 8,
+            totalTextCount = 24,
             curriculumLap = 1,
             todayReviewCount = 3,
             showBannerAd = false,
@@ -356,4 +377,3 @@ private fun HomeMenuScreenPreview() {
         )
     }
 }
-

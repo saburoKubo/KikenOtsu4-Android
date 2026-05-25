@@ -66,6 +66,7 @@ import com.kubosaburo.kikenotsu4.data.CurriculumSectionType
 import com.kubosaburo.kikenotsu4.data.textIdToCurriculumChapterDescriptionMap
 import com.kubosaburo.kikenotsu4.data.ProManager
 import com.kubosaburo.kikenotsu4.data.DailyTextLimitStore
+import com.kubosaburo.kikenotsu4.data.CompletedTextStore
 import com.kubosaburo.kikenotsu4.ui.screens.BookmarkScreen
 import com.kubosaburo.kikenotsu4.ui.screens.FreeStudyHomeScreen
 import com.kubosaburo.kikenotsu4.ui.screens.HomeMenuScreen
@@ -117,6 +118,7 @@ fun AppRoot() {
     var curriculumError by rememberSaveable { mutableStateOf<String?>(null) }
     var curriculumNextSectionId by rememberSaveable { mutableStateOf<String?>(null) }
     var curriculumCurrentSectionId by rememberSaveable { mutableStateOf<String?>(null) }
+    var completedTextIds by rememberSaveable { mutableStateOf<Set<String>>(emptySet()) }
 
     var selectedTab by rememberSaveable { mutableStateOf(BottomTab.HOME) }
     var homeMode by rememberSaveable { mutableStateOf(HomeMode.MENU) }
@@ -210,6 +212,7 @@ fun AppRoot() {
             curriculumNextSectionId = CurriculumProgressStore.loadNextSectionId(context)
 
             bookmarkedTextIds = bookmarkStore.loadBookmarkedTextIds().toSet()
+            completedTextIds = CompletedTextStore.getCompletedTextIds(context)
             proManager.refresh()
         }.onFailure {
             error = it.message ?: it.toString()
@@ -238,6 +241,15 @@ fun AppRoot() {
         return flattenedCurriculumSections().size
     }
 
+    fun totalTextCount(): Int {
+        return texts.map { it.id }.toSet().size
+    }
+
+    fun completedTextCount(): Int {
+        val currentTextIds = texts.map { it.id }.toSet()
+        return completedTextIds.count { it in currentTextIds }
+    }
+
     fun completedSectionCount(): Int {
         val allSections = flattenedCurriculumSections()
         if (allSections.isEmpty()) return 0
@@ -252,6 +264,12 @@ fun AppRoot() {
 
         val nextIndex = allSections.indexOfFirst { it.id == nextId }
         return if (nextIndex >= 0) nextIndex else 0
+    }
+
+    fun markTextLearned(textId: String) {
+        if (CompletedTextStore.markCompleted(context, textId)) {
+            completedTextIds = CompletedTextStore.getCompletedTextIds(context)
+        }
     }
 
     fun findCurriculumSection(sectionId: String): CurriculumSection? {
@@ -983,6 +1001,7 @@ fun AppRoot() {
                     onLearningDataCleared = {
                         curriculumNextSectionId = CurriculumProgressStore.loadNextSectionId(context)
                         bookmarkedTextIds = bookmarkStore.loadBookmarkedTextIds().toSet()
+                        completedTextIds = CompletedTextStore.getCompletedTextIds(context)
                     },
                     onDebugOpenFinalCelebration = {
                         debugFinalCelebrationLapOverride = 0
@@ -999,6 +1018,8 @@ fun AppRoot() {
                     quizLogStore = quizLogStore,
                     completedSectionCount = completedSectionCount(),
                     totalSectionCount = totalSectionCount(),
+                    completedTextCount = completedTextCount(),
+                    totalTextCount = totalTextCount(),
                     curriculumLap = CurriculumProgressStore.loadLap(context),
                     contentPadding = innerPadding,
                 )
@@ -1100,6 +1121,8 @@ fun AppRoot() {
                     contentPadding = innerPadding,
                     totalSections = totalSectionCount().takeIf { it > 0 },
                     completedSections = completedSectionCount(),
+                    completedTextCount = completedTextCount(),
+                    totalTextCount = totalTextCount(),
                     curriculumLap = CurriculumProgressStore.loadLap(context),
                     todayReviewCount = fetchDueReviewIds(context).size,
                     showBannerAd = !proManager.isProEnabled,
@@ -1402,6 +1425,7 @@ fun AppRoot() {
                         // 無料版の「本日の上限」カウント対象（テキスト問題のみ）
                         // 復習（auto-review）ではカウントしない。
                         if (!isAutoReview) {
+                            markTextLearned(tid)
                             DailyTextLimitStore.markCompletedText(context, tid)
                         }
 
@@ -1474,6 +1498,7 @@ fun AppRoot() {
                             }
 
                             // 通常クイズ完了時も、無料版の上限カウント対象（テキスト問題のみ）。
+                            markTextLearned(tid)
                             DailyTextLimitStore.markCompletedText(context, tid)
 
                             quizTextId = null
@@ -1684,6 +1709,8 @@ fun AppRoot() {
                     contentPadding = innerPadding,
                     totalSections = totalSectionCount().takeIf { it > 0 },
                     completedSections = completedSectionCount(),
+                    completedTextCount = completedTextCount(),
+                    totalTextCount = totalTextCount(),
                     curriculumLap = CurriculumProgressStore.loadLap(context),
                     todayReviewCount = fetchDueReviewIds(context).size,
                     showBannerAd = !proManager.isProEnabled,

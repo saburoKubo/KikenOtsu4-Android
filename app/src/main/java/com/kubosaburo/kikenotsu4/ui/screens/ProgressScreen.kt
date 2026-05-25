@@ -40,6 +40,8 @@ fun ProgressScreen(
     quizLogStore: QuizLogStore,
     completedSectionCount: Int = 0,
     totalSectionCount: Int = 0,
+    completedTextCount: Int = 0,
+    totalTextCount: Int = 0,
     /** [com.kubosaburo.kikenotsu4.data.CurriculumProgressStore.loadLap]。2 以上で「○周目」を全体進捗に表示 */
     curriculumLap: Int = 1,
     contentPadding: PaddingValues = PaddingValues(0.dp),
@@ -57,6 +59,12 @@ fun ProgressScreen(
         0f
     }
     val overallProgressPercent = (overallProgressValue * 100f).roundToInt()
+    val learnedTextProgressValue = if (totalTextCount > 0) {
+        (completedTextCount.toFloat() / totalTextCount.toFloat()).coerceIn(0f, 1f)
+    } else {
+        0f
+    }
+    val learnedTextProgressPercent = (learnedTextProgressValue * 100f).roundToInt()
 
     val streakDays = LearnStreakStore.getStreakDays(context)
 
@@ -107,7 +115,7 @@ fun ProgressScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "全体の進捗",
+                            text = "カリキュラム進捗",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -149,11 +157,62 @@ fun ProgressScreen(
 
                     Text(
                         text = buildString {
-                            append("章全体の完了セクション数から進捗を表示しています。")
+                            append("カリキュラムの完了セクション数から進捗を表示しています。")
                             if (curriculumLap >= 2) {
                                 append(" カリキュラムを最後まで終えてからの再開は「${curriculumLap}周目」として表示します。")
                             }
                         },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(18.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    Text(
+                        text = "学習済み項目",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    LinearProgressIndicator(
+                        progress = { learnedTextProgressValue },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(12.dp),
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "$completedTextCount / $totalTextCount 項目完了",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = "$learnedTextProgressPercent%",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    Text(
+                        text = "カリキュラムでも自分で学ぶでも、通常クイズを最後まで解いたテキストを学習済みにします。",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -223,6 +282,8 @@ private fun ProgressScreenPreview() {
             quizLogStore = QuizLogStore(context),
             completedSectionCount = 4,
             totalSectionCount = 12,
+            completedTextCount = 8,
+            totalTextCount = 24,
             curriculumLap = 1,
             contentPadding = PaddingValues(0.dp),
         )
