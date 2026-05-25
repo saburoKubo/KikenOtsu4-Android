@@ -6,6 +6,8 @@ plugins {
 
 android {
     namespace = "com.kubosaburo.kikenotsu4"
+    // compile は API 36.1 まで指定可能（minorApiLevel）。
+    // targetSdk の release() はマイナーを取れないため API 36 のみ指定する。
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -15,9 +17,12 @@ android {
     defaultConfig {
         applicationId = "com.kubosaburo.kikenotsu4"
         minSdk = 26
-        targetSdk = 36
-        versionCode = 9
-        versionName = "1.0.8"
+        // Android 16（API 36）。TargetSdkVersion.release は Int のみ。
+        targetSdk {
+            version = release(36)
+        }
+        versionCode = 14
+        versionName = "1.0.13"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -55,6 +60,9 @@ dependencies {
 
     // Google Mobile Ads (AdMob)
     implementation(libs.google.mobile.ads)
+
+    // Google Play Billing (Pro one-time purchase)
+    implementation(libs.billingclient)
 
     // 視聴学習リマインド（周期通知）
     implementation(libs.androidx.workmanager.runtime)

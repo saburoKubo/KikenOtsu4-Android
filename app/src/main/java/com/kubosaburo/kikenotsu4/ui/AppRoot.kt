@@ -103,6 +103,7 @@ private enum class CurriculumOpenOutcome {
 @Composable
 fun AppRoot() {
     val context = LocalContext.current
+    val activity = LocalActivity.current
     val quizLogStore = remember { QuizLogStore(context) }
     val bookmarkStore = remember { BookmarkStore(context) }
     val proManager = remember { ProManager(context) }
@@ -991,7 +992,7 @@ fun AppRoot() {
                     isProEnabled = proManager.isProEnabled,
                     isProBusy = proManager.isBusy,
                     proErrorMessage = proManager.lastErrorMessage,
-                    onProPurchase = { proManager.purchase() },
+                    onProPurchase = { proManager.purchase(activity) },
                     onProRestore = { proManager.restore() },
                     onProModeChanged = {
                         proManager.refresh()

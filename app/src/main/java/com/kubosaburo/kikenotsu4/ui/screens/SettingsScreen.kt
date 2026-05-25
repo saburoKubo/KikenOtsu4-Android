@@ -545,7 +545,7 @@ private fun ProUpgradeCard(
                     Text("購入を復元")
                 }
                 Text(
-                    text = "※ 実際の課金は今後 Google Play に対応予定です。",
+                    text = "※ 購入は Google Play の決済画面で行われます。",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
